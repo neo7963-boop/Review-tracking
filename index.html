@@ -33,32 +33,39 @@
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px 0; }
         .checkbox-label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; }
         
+        /* 未來兩星期個案清單樣式 */
+        .two-week-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .two-week-item { background: #F8F9FA; border-left: 4px solid var(--primary-color); padding: 10px 12px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s; }
+        .two-week-item:active { background: #EBEDEF; }
+        .two-week-hn { font-weight: bold; color: #2C3E50; font-size: 15px; }
+        .two-week-date { font-size: 13px; color: #7F8C8D; background: #EAECEE; padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+        .two-week-empty { color: #7f8c8d; text-align: center; font-size: 14px; padding: 10px 0; }
+        
+        /* 新症 Tag 樣式 */
+        .new-case-badge { background-color: #E8F8F5; color: #117A65; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 6px; border: 1px solid #A3E4D7;}
+
         /* Patient Cards */
         .patient-card { border: 2px solid #ECF0F1; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
         .patient-card.clash { border-color: var(--danger-color); background-color: #FDEDEC; }
         .clash-warning { color: var(--danger-color); font-weight: bold; font-size: 12px; margin-top: 5px; display: none; }
         .patient-card.clash .clash-warning { display: block; }
-        .patient-hn { font-size: 16px; font-weight: bold; color: #2C3E50; }
+        .patient-hn { font-size: 16px; font-weight: bold; color: #2C3E50; display: flex; align-items: center; }
         .search-box { background: #EAECEE; border: none; padding: 10px; font-size: 15px; margin-bottom: 8px; }
         .search-tags-title { font-size: 13px; color: #7F8C8D; margin-bottom: 5px; font-weight: bold;}
         .search-checkbox-group { background: #F8F9FA; padding: 10px; border-radius: 8px; border: 1px dashed #BDC3C7; }
 
-        /* --- 📅 手機響應式日曆排版優化 (RWD Mobile Calendar) --- */
+        /* 📅 日曆樣式 */
         .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 5px; }
         .cal-header h2 { border: none; padding: 0; margin: 0; font-size: 16px; }
         .cal-btn-group { display: flex; align-items: center; gap: 4px; }
         .cal-btn-group button { padding: 4px 10px; font-size: 12px; }
-        
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; width: 100%; box-sizing: border-box; }
         .cal-weekday { font-weight: bold; color: #7F8C8D; font-size: 11px; padding: 4px 0; background: #EAECEE; border-radius: 4px; }
-        
         .cal-day { min-height: 55px; background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 6px; padding: 2px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; box-sizing: border-box; overflow: hidden; }
         .cal-day .day-num { font-size: 10px; font-weight: bold; color: #95A5A6; text-align: left; padding-left: 2px; }
         .cal-day.today { background-color: #EBF5FB; border-color: #5DADE2; }
         .cal-day.today .day-num { color: #2980B9; }
         .cal-day.is-holiday-bg { background-color: #FEF9E7; border-color: #F4D03F; }
-        
-        /* 手機版 HN 標籤縮小防擠變形 */
         .cal-badge { font-size: 8px; padding: 1px 2px; margin: 1px 0; border-radius: 3px; color: white; font-weight: 500; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; }
         .badge-normal { background-color: #4A90E2; }
         .badge-done { background-color: #2ECC71 !important; }
@@ -76,6 +83,11 @@
             <h1>Clinic Companion</h1>
             <p>Patient Follow-up & Calendar Tracker</p>
         </div>
+    </div>
+
+    <div class="card">
+        <h2>⏱️ 未來兩星期個案清單 (Next 14 Days Cases)</h2>
+        <div class="two-week-list" id="twoWeekList"></div>
     </div>
 
     <div class="card">
@@ -125,7 +137,7 @@
             <div class="checkbox-group" id="formCheckboxes"></div>
             <div class="grid-2">
                 <div>
-                    <label><b>3. 最後一次見:</b></label>
+                    <label><b>3. 最後一次見 (新症可留空):</b></label>
                     <input type="date" id="lastSeen">
                 </div>
                 <div>
@@ -189,10 +201,10 @@
         if (start > end) { alert('結束日期唔可以早過開始日期！'); return; }
         if(!db.holidayRanges.some(r => r.start === start && r.end === end)) {
             db.holidayRanges.push({ start, end }); document.getElementById('holidayStart').value = ''; document.getElementById('holidayEnd').value = '';
-            saveData(); renderHolidays(); renderPatients(); renderCalendar();
+            saveData(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList();
         }
     }
-    function deleteHolidayRange(index) { db.holidayRanges.splice(index, 1); saveData(); renderHolidays(); renderPatients(); renderCalendar(); }
+    function deleteHolidayRange(index) { db.holidayRanges.splice(index, 1); saveData(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList(); }
     function checkIfDateIsHoliday(d) { return d ? db.holidayRanges.some(r => d >= r.start && d <= r.end) : false; }
 
     function savePatient(e) {
@@ -204,7 +216,7 @@
             notes: document.getElementById('freeText').value.trim()
         };
         if(editIndex === -1) db.patients.push(pData); else db.patients[editIndex] = pData;
-        saveData(); resetForm(); renderPatients(); renderCalendar();
+        saveData(); resetForm(); renderPatients(); renderCalendar(); renderTwoWeekList();
     }
 
     function renderPatients() {
@@ -219,12 +231,16 @@
 
             const isClash = checkIfDateIsHoliday(p.nextSeen);
             const ticksHtml = p.checkedItems.map(item => `🏷️ <b>${item}</b>`).join(' | ') || '無';
+            const isNewCase = !p.lastSeen; // 檢查是否為新症
+
             list.innerHTML += `
-                <div class="patient-card ${isClash ? 'clash' : ''}">
-                    <div class="patient-hn">HN: ${p.hn}</div>
+                <div class="patient-card" id="p-card-${index}" style="${isClash ? 'border-color:var(--danger-color);background-color:#FDEDEC;' : ''}">
+                    <div class="patient-hn">
+                        HN: ${p.hn} ${isNewCase ? '<span class="new-case-badge">🆕 新個案</span>' : ''}
+                    </div>
                     <p><b>剔格項目:</b> ${ticksHtml}</p>
-                    <p>📅 <b>最後一見:</b> ${p.lastSeen || '未填'} | 📅 <b>下一次見:</b> ${p.nextSeen || '未填'}</p>
-                    <p class="clash-warning">⚠️ 警告：下一次見面日子同你放假日子撞咗！</p>
+                    <p>📅 <b>最後一見:</b> ${p.lastSeen || '❌ 未曾見過 (新個案)'} | 📅 <b>下一次見:</b> ${p.nextSeen || '未填'}</p>
+                    <p class="clash-warning" style="${isClash ? 'display:block;' : ''}">⚠️ 警告：下一次見面日子同你放假日子撞咗！</p>
                     <div style="background:#F9F9F9; padding:10px; border-radius:6px; margin-top:10px; font-size:14px; white-space: pre-wrap;"><b>📝 備忘錄:</b><br>${p.notes || '（空白）'}</div>
                     <div style="margin-top: 15px; display:flex; gap:10px;">
                         <button onclick="editPatient(${index})">修改</button>
@@ -234,67 +250,91 @@
         });
     }
 
+    function renderTwoWeekList() {
+        const listContainer = document.getElementById('twoWeekList');
+        listContainer.innerHTML = '';
+        const today = new Date(); today.setHours(0,0,0,0);
+        const fourteenDaysLater = new Date(today); fourteenDaysLater.setDate(today.getDate() + 14);
+
+        const upcomingCases = [];
+        db.patients.forEach((p, index) => {
+            if (!p.nextSeen) return;
+            const nextSeenDate = new Date(p.nextSeen); nextSeenDate.setHours(0,0,0,0);
+            if (nextSeenDate >= today && nextSeenDate <= fourteenDaysLater) {
+                upcomingCases.push({ patient: p, originIndex: index, dateObj: nextSeenDate });
+            }
+        });
+
+        if (upcomingCases.length === 0) {
+            listContainer.innerHTML = '<div class="two-week-empty">🌴 未來兩星期暫無預約個案</div>';
+            return;
+        }
+
+        upcomingCases.sort((a, b) => a.dateObj - b.dateObj);
+
+        upcomingCases.forEach(item => {
+            const isNew = !item.patient.lastSeen ? ' <span style="color:#117A65; font-size:11px;">[🆕新症]</span>' : '';
+            listContainer.innerHTML += `
+                <div class="two-week-item" onclick="scrollToPatient(${item.originIndex})">
+                    <div class="two-week-hn">🪪 HN: ${item.patient.hn}${isNew}</div>
+                    <div class="two-week-date">⏳ 下次見: ${item.patient.nextSeen}</div>
+                </div>`;
+        });
+    }
+
+    function scrollToPatient(index) {
+        editPatient(index);
+        setTimeout(() => {
+            const card = document.getElementById(`p-card-${index}`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.style.transition = 'background-color 0.3s'; card.style.backgroundColor = '#FFF9C4';
+                setTimeout(() => { card.style.backgroundColor = ''; }, 1000);
+            }
+        }, 350);
+    }
+
     function renderCalendar() {
-        const grid = document.getElementById('calendarGrid');
-        const monthTitle = document.getElementById('calMonthTitle');
-        grid.innerHTML = '';
-
-        const year = currentCalDate.getFullYear();
-        const month = currentCalDate.getMonth();
-        
+        const grid = document.getElementById('calendarGrid'); const monthTitle = document.getElementById('calMonthTitle'); grid.innerHTML = '';
+        const year = currentCalDate.getFullYear(); const month = currentCalDate.getMonth();
         monthTitle.innerText = `${year}年 ${String(month + 1).padStart(2, '0')}月`;
-
         const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
         weekdays.forEach(wd => { grid.innerHTML += `<div class="cal-weekday">${wd}</div>`; });
-
-        const firstDayIndex = new Date(year, month, 1).getDay();
-        const totalDays = new Date(year, month + 1, 0).getDate();
-        const todayStr = new Date().toISOString().split('T')[0];
-
+        const firstDayIndex = new Date(year, month, 1).getDay(); const totalDays = new Date(year, month + 1, 0).getDate(); const todayStr = new Date().toISOString().split('T')[0];
         for (let i = 0; i < firstDayIndex; i++) { grid.innerHTML += `<div></div>`; }
-
         for (let day = 1; day <= totalDays; day++) {
             const currentStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const isToday = currentStr === todayStr ? 'today' : '';
-            const isHoliday = checkIfDateIsHoliday(currentStr) ? 'is-holiday-bg' : '';
-
+            const isToday = currentStr === todayStr ? 'today' : ''; const isHoliday = checkIfDateIsHoliday(currentStr) ? 'is-holiday-bg' : '';
             let dayHtml = `<div class="cal-day ${isToday} ${isHoliday}"><div class="day-num">${day}</div>`;
-
             db.patients.forEach((p, pIdx) => {
                 let badgeClass = 'badge-normal';
-                if (p.checkedItems.includes('已完成')) { badgeClass = 'badge-done'; } 
-                else if (p.checkedItems.includes('要review')) { badgeClass = 'badge-review'; }
-
-                if(p.lastSeen === currentStr) {
-                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="editPatient(${pIdx})">⏮️${p.hn.replace(/^\D+/g, '')}</div>`;
+                if (p.checkedItems.includes('已完成')) { badgeClass = 'badge-done'; } else if (p.checkedItems.includes('要review')) { badgeClass = 'badge-review'; }
+                
+                // 只有填咗最後一次見，先至會喺日曆顯示 ⏮️
+                if(p.lastSeen && p.lastSeen === currentStr) { 
+                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${p.hn.replace(/^\D+/g, '')}</div>`; 
                 }
-                if(p.nextSeen === currentStr) {
-                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="editPatient(${pIdx})">⏭️${p.hn.replace(/^\D+/g, '')}</div>`;
+                if(p.nextSeen === currentStr) { 
+                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏭️${p.hn.replace(/^\D+/g, '')}</div>`; 
                 }
             });
-
-            dayHtml += `</div>`;
-            grid.innerHTML += dayHtml;
+            dayHtml += `</div>`; grid.innerHTML += dayHtml;
         }
     }
 
-    function changeMonth(direction) {
-        currentCalDate.setMonth(currentCalDate.getMonth() + direction);
-        renderCalendar();
-    }
+    function changeMonth(direction) { currentCalDate.setMonth(currentCalDate.getMonth() + direction); renderCalendar(); }
 
     function editPatient(index) {
         const p = db.patients[index]; document.getElementById('editIndex').value = index;
-        document.getElementById('hnNumber').value = p.hn; document.getElementById('lastSeen').value = p.lastSeen;
+        document.getElementById('hnNumber').value = p.hn; document.getElementById('lastSeen').value = p.lastSeen || '';
         document.getElementById('nextSeen').value = p.nextSeen; document.getElementById('freeText').value = p.notes;
         document.querySelectorAll('.patient-chk').forEach(c => c.checked = p.checkedItems.includes(c.value));
-        document.getElementById('cancelEditBtn').style.display = 'block'; 
-        document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('cancelEditBtn').style.display = 'block';
     }
-    function deletePatient(index) { if(confirm('確定要刪除？')) { db.patients.splice(index, 1); saveData(); renderPatients(); renderCalendar(); } }
+    function deletePatient(index) { if(confirm('確定要刪除？')) { db.patients.splice(index, 1); saveData(); renderPatients(); renderCalendar(); renderTwoWeekList(); } }
     function resetForm() { document.getElementById('patientForm').reset(); document.getElementById('editIndex').value = "-1"; document.getElementById('cancelEditBtn').style.display = 'none'; }
     
-    renderCheckboxManager(); renderHolidays(); renderPatients(); renderCalendar();
+    renderCheckboxManager(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList();
 </script>
 </body>
 </html>
