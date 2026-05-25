@@ -3,99 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Companion - Patient Tracker</title>
+    <title>Clinic Companion</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <style>
-        :root {
-            --primary-color: #4A90E2;
-            --danger-color: #E74C3C;
-            --bg-color: #F5F7FA;
-            --card-bg: #FFFFFF;
-            --text-color: #333333;
-        }
+        :root { --primary-color: #4A90E2; --danger-color: #E74C3C; --bg-color: #F5F7FA; --card-bg: #FFFFFF; --text-color: #333333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .app-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 10px 5px; }
+        .app-logo { width: 50px; height: 50px; background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+        .app-logo svg { width: 28px; height: 28px; fill: white; }
+        .app-title h1 { margin: 0; font-size: 22px; color: #2C3E50; }
+        .app-title p { margin: 2px 0 0 0; font-size: 12px; color: #7F8C8D; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; font-size: 18px; color: #2C3E50; border-bottom: 2px solid #ECF0F1; padding-bottom: 8px; }
+        input[type="text"], input[type="date"], textarea { width: 100%; padding: 10px; margin: 8px 0 15px 0; border: 1px solid #BDC3C7; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        button.danger { background-color: var(--danger-color); }
+        button.secondary { background-color: #95A5A6; }
+        .checkbox-manager-list, .holiday-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .tag-item, .holiday-btn { background: #ECF0F1; padding: 5px 10px; border-radius: 20px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .holiday-btn { background: #EAF2F8; color: #2980B9; border: 1px solid #AED6F1; border-radius: 6px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin: 10px 0 15px 0; }
+        .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 15px; }
+        .patient-card { border: 2px solid #ECF0F1; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .patient-card.clash { border-color: var(--danger-color); background-color: #FDEDEC; }
+        .clash-warning { color: var(--danger-color); font-weight: bold; font-size: 13px; margin-top: 5px; display: none; }
+        .patient-card.clash .clash-warning { display: block; }
+        .patient-hn { font-size: 18px; font-weight: bold; color: #2C3E50; }
+        .search-box { background: #EAECEE; border: none; padding: 12px; font-size: 16px; }
+    </style>
+</head>
+<body>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 15px;
-        }
+<div class="container">
+    <div class="app-header">
+        <div class="app-logo">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+        </div>
+        <div class="app-title">
+            <h1>Clinic Companion</h1>
+            <p>Patient Follow-up & Holiday Checker</p>
+        </div>
+    </div>
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+    <div class="card">
+        <h2>⚙️ 設定：管理自訂剔格</h2>
+        <div class="checkbox-manager-list" id="managerList"></div>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="newCheckboxName" placeholder="輸入新格仔名稱" style="margin:0;">
+            <button onclick="addCustomCheckbox()">新增</button>
+        </div>
+    </div>
 
-        /* App Header & Logo Section */
-        .app-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            padding: 10px 5px;
-        }
+    <div class="card">
+        <h2>📅 設定：我放假嘅日期範圍</h2>
+        <div class="grid-2">
+            <div>
+                <label>由:</label>
+                <input type="date" id="holidayStart" style="margin-bottom:10px;">
+            </div>
+            <div>
+                <label>至 (單日放假可留空):</label>
+                <input type="date" id="holidayEnd" style="margin-bottom:10px;">
+            </div>
+        </div>
+        <button onclick="addHolidayRange()" class="secondary" style="width: 100%;">新增假期</button>
+        <div class="holiday-list" id="holidayList"></div>
+    </div>
 
-        .app-logo {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-        }
+    <div class="card">
+        <h2>✍️ 輸入新個案 / 編輯資料</h2>
+        <form id="patientForm" onsubmit="savePatient(event)">
+            <input type="hidden" id="editIndex" value="-1">
+            <label><b>1. Patient HN Number:</b></label>
+            <input type="text" id="hnNumber" placeholder="例如: HN123456" required>
+            <label><b>2. 項目剔格:</b></label>
+            <div class="checkbox-group" id="formCheckboxes"></div>
+            <div class="grid-2">
+                <div>
+                    <label><b>3. 最後一次見:</b></label>
+                    <input type="date" id="lastSeen">
+                </div>
+                <div>
+                    <label><b>4. 下一次見:</b></label>
+                    <input type="date" id="nextSeen">
+                </div>
+            </div>
+            <label><b>6. 備忘錄:</b></label>
+            <textarea id="freeText" rows="3" placeholder="打返有咩要留意..."></textarea>
+            <button type="submit" style="width: 100%; padding: 12px;">儲存病人資料</button>
+            <button type="button" id="cancelEditBtn" class="secondary" style="width: 100%; margin-top: 8px; display: none;" onclick="resetForm()">取消編輯</button>
+        </form>
+    </div>
 
-        .app-logo svg {
-            width: 28px;
-            height: 28px;
-            fill: white;
-        }
+    <div class="card">
+        <h2>🔍 搜尋個案 (Search Notes)</h2>
+        <input type="text" id="searchBox" class="search-box" placeholder="輸入關鍵字搜尋備忘錄..." oninput="renderPatients()">
+    </div>
 
-        .app-title h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-            color: #2C3E50;
-        }
-        .app-title p {
-            margin: 2px 0 0 0;
-            font-size: 12px;
-            color: #7F8C8D;
-        }
+    <div class="card">
+        <h2>📋 病人檔案名單</h2>
+        <div id="patientList"></div>
+    </div>
+</div>
 
-        /* Sections Styling */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
+<script>
+    let db = { checkboxes: ['已簽字', 'Report ready', '要配藥'], holidayRanges: [], patients: [] };
+    if(localStorage.getItem('clinicCompanionDB')) { db = JSON.parse(localStorage.getItem('clinicCompanionDB')); }
+    function saveData() { localStorage.setItem('clinicCompanionDB', JSON.stringify(db)); }
+    
+    function renderCheckboxManager() {
+        const list = document.getElementById('managerList'); const formGroup = document.getElementById('formCheckboxes');
+        list.innerHTML = ''; formGroup.innerHTML = '';
+        db.checkboxes.forEach((name, index) => {
+            list.innerHTML += `<div class="tag-item">${name} <span style="color:red;cursor:pointer;" onclick="deleteCheckbox(${index})">×</span></div>`;
+            formGroup.innerHTML += `<label class="checkbox-label"><input type="checkbox" value="${name}" class="patient-chk"> ${name}</label>`;
+        });
+    }
+    function addCustomCheckbox() {
+        const input = document.getElementById('newCheckboxName'); const val = input.value.trim();
+        if(val && !db.checkboxes.includes(val)) { db.checkboxes.push(val); input.value = ''; saveData(); renderCheckboxManager(); }
+    }
+    function deleteCheckbox(index) { db.checkboxes.splice(index, 1); saveData(); renderCheckboxManager(); }
 
-        h2 {
-            margin-top: 0;
-            font-size: 18px;
-            color: #2C3E50;
-            border-bottom: 2px solid #ECF0F1;
-            padding-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+    function renderHolidays() {
+        const list = document.getElementById('holidayList'); list.innerHTML = '';
+        db.holidayRanges.sort((a, b) => a.start.localeCompare(b.start));
+        db.holidayRanges.forEach((range, index) => {
+            let txt = range.start === range.end ? range.start : `${range.start} 至 ${range.end}`;
+            list.innerHTML += `<div class="holiday-btn" onclick="deleteHolidayRange(${index})">🌴 ${txt} ❌</div>`;
+        });
+    }
+    function addHolidayRange() {
+        const start = document.getElementById('holidayStart').value; let end = document.getElementById('holidayEnd').value;
+        if (!start) return; if (!end) end = start;
+        if (start > end) { alert('結束日期唔可以早過開始日期！'); return; }
+        if(!db.holidayRanges.some(r => r.start === start && r.end === end)) {
+            db.holidayRanges.push({ start, end }); document.getElementById('holidayStart').value = ''; document.getElementById('holidayEnd').value = '';
+            saveData(); renderHolidays(); renderPatients();
         }
+    }
+    function deleteHolidayRange(index) { db.holidayRanges.splice(index, 1); saveData(); renderHolidays(); renderPatients(); }
+    function checkIfDateIsHoliday(d) { return d ? db.holidayRanges.some(r => d >= r.start && d <= r.end) : false; }
 
-        /* Inputs & Buttons */
-        input[type="text"], input[type="date"], textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0 15px 0;
-            border: 1px solid #BDC3C7;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 15px;
-        }
-
-        button {
+    function savePatient(e) {
+        e.preventDefault(); const editIndex = parseInt(document.getElementById('editIndex').value);
+        const chks = []; document.querySelectorAll('.patient-chk:checked').forEach(c => chks.push(c.value));
+        const pData = {
+            hn: document.getElementById('hnNumber').value.trim(), checkedItems: chks,
+            lastSeen: document.getElementById('lastSeen').value, nextSeen: document.getElementById('nextSeen').value,
+            notes: document.getElementById('freeText').value.trim()
+        };
+        if(editIndex === -1) db.patients.push(pData); else db.patients[editIndex] = pData;
+        saveData(); resetForm(); renderPatients();
+    }
+    function renderPatients() {
+        const list = document.getElementById('patientList'); const kw = document.getElementById('searchBox').value.toLowerCase();
+        list.innerHTML = '';
+        if(db.patients.length === 0) { list.innerHTML = '<p style="color:#7f8c8d;text-align:center;">暫無病人檔案</p>'; return; }
+        db.patients.forEach((p, index) => {
+            if(kw && !p.notes.toLowerCase().includes(kw)) return;
+            const isClash = checkIfDateIsHoliday(p.nextSeen);
+            const ticksHtml = p.checkedItems.map(item => `🏷️ <b>${item}</b>`).join(' | ') || '無';
+            list.innerHTML += `
+                <div class="patient-card ${isClash ? 'clash' : ''}">
+                    <div class="patient-hn">HN: ${p.hn}</div>
+                    <p><b>剔格項目:</b> ${ticksHtml}</p>
+                    <p>📅 <b>最後一見:</b> ${p.lastSeen || '未填'} | 📅 <b>下一次見:</b> ${p.nextSeen || '未填'}</p>
+                    <p class="clash-warning">⚠️ 警告：下一次見面日子同你放假日子撞咗！</p>
+                    <div style="background:#F9F9F9; padding:10px; border-radius:6px; margin-top:10px; font-size:14px; white-space: pre-wrap;"><b>📝 備忘錄:</b><br>${p.notes || '（空白）'}</div>
+                    <div style="margin-top: 15px; display:flex; gap:10px;">
+                        <button onclick="editPatient(${index})">修改</button>
+                        <button class="danger" onclick="deletePatient(${index})">刪除</button>
+                    </div>
+                </div>`;
+        });
+    }
+    function editPatient(index) {
+        const p = db.patients[index]; document.getElementById('editIndex').value = index;
+        document.getElementById('hnNumber').value = p.hn; document.getElementById('lastSeen').value = p.lastSeen;
+        document.getElementById('nextSeen').value = p.nextSeen; document.getElementById('freeText').value = p.notes;
+        document.querySelectorAll('.patient-chk').forEach(c => c.checked = p.checkedItems.includes(c.value));
+        document.getElementById('cancelEditBtn').style.display = 'block'; window.scrollTo({ top: 300, behavior: 'smooth' });
+    }
+    function deletePatient(index) { if(confirm('確定要刪除？')) { db.patients.splice(index, 1); saveData(); renderPatients(); } }
+    function resetForm() { document.getElementById('patientForm').reset(); document.getElementById('editIndex').value = "-1"; document.getElementById('cancelEditBtn').style.display = 'none'; }
+    
+    renderCheckboxManager(); renderHolidays(); renderPatients();
+</script>
+</body>
+</html>
