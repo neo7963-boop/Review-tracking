@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinic Companion</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Clinic">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='url(%23grad)'/><defs><linearGradient id='grad' x1='0%27 y1='0%27 x2='100%27 y2='100%'><stop offset='0%27 stop-color='%234A90E2'/><stop offset='100%27 stop-color='%23357ABD'/></linearGradient></defs><path d='M135 95h-35v35h-20V95H45V75h35V40h20v35h35v20z' fill='white'/></svg>">
+
     <style>
         :root { --primary-color: #4A90E2; --danger-color: #E74C3C; --bg-color: #F5F7FA; --card-bg: #FFFFFF; --text-color: #333333; }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 12px; }
@@ -231,7 +235,7 @@
 
             const isClash = checkIfDateIsHoliday(p.nextSeen);
             const ticksHtml = p.checkedItems.map(item => `🏷️ <b>${item}</b>`).join(' | ') || '無';
-            const isNewCase = !p.lastSeen; // 檢查是否為新症
+            const isNewCase = !p.lastSeen;
 
             list.innerHTML += `
                 <div class="patient-card" id="p-card-${index}" style="${isClash ? 'border-color:var(--danger-color);background-color:#FDEDEC;' : ''}">
@@ -310,7 +314,6 @@
                 let badgeClass = 'badge-normal';
                 if (p.checkedItems.includes('已完成')) { badgeClass = 'badge-done'; } else if (p.checkedItems.includes('要review')) { badgeClass = 'badge-review'; }
                 
-                // 只有填咗最後一次見，先至會喺日曆顯示 ⏮️
                 if(p.lastSeen && p.lastSeen === currentStr) { 
                     dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${p.hn.replace(/^\D+/g, '')}</div>`; 
                 }
