@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Clinic">
-    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='url(%23grad)'/><defs><linearGradient id='grad' x1='0%27 y1='0%27 x2='100%27 y2='100%'><stop offset='0%27 stop-color='%234A90E2'/><stop offset='100%27 stop-color='%23357ABD'/></linearGradient></defs><path d='M135 95h-35v35h-20V95H45V75h35V40h20v35h35v20z' fill='white'/></svg>">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAsAAAAAwAMAAAAFpOTPAAAAD1BMVEU0S0tdXmBfXmBfXmBfXmBv37pXAAAABHRSTlMAECBA6be3vAAAAMxJREFUeNrt1gENwzAMAMFEWeZfOpW7g7vIAnTe9ooAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALg9N7MvBv9u794ZfI3Z6wEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIDbCzBe9u7Iu0YvAAAAAElFTkSuQmCC">
 
     <style>
         :root { --primary-color: #4A90E2; --danger-color: #E74C3C; --bg-color: #F5F7FA; --card-bg: #FFFFFF; --text-color: #333333; }
@@ -36,9 +36,7 @@
         .tag-item, .holiday-btn { background: #ECF0F1; padding: 4px 10px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
         .holiday-btn { background: #EAF2F8; color: #2980B9; border: 1px solid #AED6F1; border-radius: 6px; }
         
-        /* 📱 修正：手機版日期欄位改為上下直排，徹底防止一高一低錯位 */
         .date-fields-group { display: flex; flex-direction: column; gap: 2px; }
-        
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px 0; }
         .checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; background: #F8F9FA; padding: 6px 10px; border-radius: 6px; border: 1px solid #EAECEE; }
         
@@ -59,24 +57,26 @@
         .search-tags-title { font-size: 12px; color: #7F8C8D; margin-bottom: 4px; font-weight: bold;}
         .search-checkbox-group { background: #F8F9FA; padding: 8px; border-radius: 8px; border: 1px dashed #BDC3C7; }
 
-        /* 📅 修正：日曆頂部排版，改為上下兩層，防止手機疊字 */
-        .cal-header { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
-        .cal-header h2 { border: none; padding: 0; margin: 0; font-size: 16px; width: 100%; }
-        .cal-control-row { display: flex; align-items: center; justify-content: center; width: 100%; background: #F8F9FA; padding: 6px; border-radius: 8px; gap: 10px; }
-        .cal-btn-group button { padding: 6px 16px; font-size: 14px; background: var(--primary-color); color: white; border-radius: 6px; }
+        /* 📅 徹底重寫：日曆控制列，採用純塊狀獨立分行，絕對不會再疊字 */
+        .cal-header-block { width: 100%; margin-bottom: 12px; }
+        .cal-header-block h2 { border: none; margin: 0 0 10px 0; padding: 0; font-size: 16px; }
+        .cal-control-row { display: flex; align-items: center; justify-content: space-between; background: #F0F4F8; padding: 8px 12px; border-radius: 10px; width: 100%; }
+        .cal-btn { padding: 6px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border-radius: 6px; font-weight: bold; }
         
-        /* 📅 修正：日曆網格強制 7 等分，防止寬度收縮變形 */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; width: 100%; table-layout: fixed; }
-        .cal-weekday { font-weight: bold; color: #7F8C8D; font-size: 11px; padding: 6px 0; background: #EAECEE; border-radius: 4px; text-align: center; }
+        /* 📅 終極大修正：改用原生 Table 佈局，強制手機端 100% 均分，防止一長一短變形 */
+        .calendar-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
+        .calendar-table th { font-weight: bold; color: #7F8C8D; font-size: 12px; padding: 6px 0; background: #EAECEE; border-radius: 4px; text-align: center; }
+        .calendar-table td { background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 4px; padding: 2px; vertical-align: top; height: 55px; width: 14.28%; overflow: hidden; }
         
-        .cal-day { min-height: 52px; background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 4px; padding: 2px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; overflow: hidden; }
-        .cal-day .day-num { font-size: 10px; font-weight: bold; color: #95A5A6; text-align: left; padding-left: 1px; line-height: 1; margin-bottom: 2px; }
-        .cal-day.today { background-color: #EBF5FB; border-color: #5DADE2; }
-        .cal-day.today .day-num { color: #2980B9; }
-        .cal-day.is-holiday-bg { background-color: #FEF9E7; border-color: #F4D03F; }
+        .calendar-table td.today { background-color: #EBF5FB; border-color: #5DADE2; }
+        .calendar-table td.is-holiday-bg { background-color: #FEF9E7; border-color: #F4D03F; }
+        .calendar-table td.empty-day { background: transparent; border: none; }
         
-        /* 標籤極限縮小適應手機螢幕 */
-        .cal-badge { font-size: 8px; padding: 1px; margin: 1px 0; border-radius: 2px; color: white; font-weight: bold; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; display: block; width: 100%; }
+        .day-num { font-size: 10px; font-weight: bold; color: #95A5A6; text-align: left; padding-left: 1px; margin-bottom: 2px; line-height: 1; }
+        .calendar-table td.today .day-num { color: #2980B9; }
+        
+        /* 標籤設計優化 */
+        .cal-badge { font-size: 8px; padding: 1px; margin: 1px 0; border-radius: 2px; color: white; font-weight: bold; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; display: block; width: 100%; }
         .badge-normal { background-color: #4A90E2; }
         .badge-done { background-color: #2ECC71 !important; }
         .badge-review { background-color: #E67E22 !important; }
@@ -101,15 +101,24 @@
     </div>
 
     <div class="card">
-        <div class="cal-header">
+        <div class="cal-header-block">
             <h2>📅 總個案排程日曆表</h2>
             <div class="cal-control-row">
-                <div class="cal-btn-group"><button onclick="changeMonth(-1)">◀</button></div>
-                <div id="calMonthTitle" style="font-weight:bold; font-size:14px; min-width: 90px; text-align:center;">2026年 05月</div>
-                <div class="cal-btn-group"><button onclick="changeMonth(1)">▶</button></div>
+                <button class="cal-btn" onclick="changeMonth(-1)">◀</button>
+                <div id="calMonthTitle" style="font-weight:bold; font-size:15px; color:#2C3E50;">2026年 05月</div>
+                <button class="cal-btn" onclick="changeMonth(1)">▶</button>
             </div>
         </div>
-        <div class="cal-grid" id="calendarGrid"></div>
+        
+        <table class="calendar-table">
+            <thead>
+                <tr>
+                    <th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th>
+                </tr>
+            </thead>
+            <tbody id="calendarTableBody">
+                </tbody>
+        </table>
     </div>
 
     <div class="card">
@@ -305,21 +314,26 @@
         }, 350);
     }
 
+    // 📅 使用 Table 邏輯完全重寫日曆生成器
     function renderCalendar() {
-        const grid = document.getElementById('calendarGrid'); const monthTitle = document.getElementById('calMonthTitle'); grid.innerHTML = '';
+        const tbody = document.getElementById('calendarTableBody'); const monthTitle = document.getElementById('calMonthTitle'); tbody.innerHTML = '';
         const year = currentCalDate.getFullYear(); const month = currentCalDate.getMonth();
         monthTitle.innerText = `${year}年 ${String(month + 1).padStart(2, '0')}月`;
         
-        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
-        weekdays.forEach(wd => { grid.innerHTML += `<div class="cal-weekday">${wd}</div>`; });
-        
         const firstDayIndex = new Date(year, month, 1).getDay(); const totalDays = new Date(year, month + 1, 0).getDate(); const todayStr = new Date().toISOString().split('T')[0];
         
-        for (let i = 0; i < firstDayIndex; i++) { grid.innerHTML += `<div></div>`; }
+        let rowHtml = '<tr>';
+        // 填補第一行的空白格子
+        for (let i = 0; i < firstDayIndex; i++) { rowHtml += '<td class="empty-day"></td>'; }
+        
+        let currentDayCount = firstDayIndex;
         for (let day = 1; day <= totalDays; day++) {
+            if (currentDayCount === 7) { rowHtml += '</tr><tr>'; currentDayCount = 0; }
+            
             const currentStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const isToday = currentStr === todayStr ? 'today' : ''; const isHoliday = checkIfDateIsHoliday(currentStr) ? 'is-holiday-bg' : '';
-            let dayHtml = `<div class="cal-day ${isToday} ${isHoliday}"><div class="day-num">${day}</div>`;
+            
+            rowHtml += `<td class="${isToday} ${isHoliday}"><div class="day-num">${day}</div>`;
             
             db.patients.forEach((p, pIdx) => {
                 let badgeClass = 'badge-normal';
@@ -327,14 +341,21 @@
                 const shortHn = p.hn.replace(/^\D+/g, '');
                 
                 if(p.lastSeen && p.lastSeen === currentStr) { 
-                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${shortHn}</div>`; 
+                    rowHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${shortHn}</div>`; 
                 }
                 if(p.nextSeen === currentStr) { 
-                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏭️${shortHn}</div>`; 
+                    rowHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏭️${shortHn}</div>`; 
                 }
             });
-            dayHtml += `</div>`; grid.innerHTML += dayHtml;
+            
+            rowHtml += `</td>`; currentDayCount++;
         }
+        
+        // 補完最後一行的剩餘空位
+        if (currentDayCount < 7 && currentDayCount > 0) {
+            for (let i = currentDayCount; i < 7; i++) { rowHtml += '<td class="empty-day"></td>'; }
+        }
+        rowHtml += '</tr>'; tbody.innerHTML = rowHtml;
     }
 
     function changeMonth(direction) { currentCalDate.setMonth(currentCalDate.getMonth() + direction); renderCalendar(); }
