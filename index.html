@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Clinic Companion</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,65 +12,71 @@
 
     <style>
         :root { --primary-color: #4A90E2; --danger-color: #E74C3C; --bg-color: #F5F7FA; --card-bg: #FFFFFF; --text-color: #333333; }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 12px; }
-        .container { max-width: 900px; margin: 0 auto; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; -webkit-text-size-adjust: 100%; }
+        .container { max-width: 900px; margin: 0 auto; width: 100%; }
         
         /* App Header */
-        .app-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; padding: 5px 0; }
+        .app-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 5px 0; }
         .app-logo { width: 44px; height: 44px; background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .app-logo svg { width: 24px; height: 24px; fill: white; }
         .app-title h1 { margin: 0; font-size: 20px; color: #2C3E50; }
         .app-title p { margin: 2px 0 0 0; font-size: 11px; color: #7F8C8D; }
         
-        .card { background: var(--card-bg); border-radius: 14px; padding: 15px; margin-bottom: 15px; box-shadow: 0 3px 5px rgba(0,0,0,0.04); }
-        h2 { margin-top: 0; font-size: 16px; color: #2C3E50; border-bottom: 2px solid #ECF0F1; padding-bottom: 8px; }
+        .card { background: var(--card-bg); border-radius: 14px; padding: 12px; margin-bottom: 12px; box-shadow: 0 3px 5px rgba(0,0,0,0.04); width: 100%; overflow: hidden; }
+        h2 { margin-top: 0; font-size: 16px; color: #2C3E50; border-bottom: 2px solid #ECF0F1; padding-bottom: 8px; margin-bottom: 10px; }
         
-        input[type="text"], input[type="date"], textarea { width: 100%; padding: 10px; margin: 6px 0 12px 0; border: 1px solid #BDC3C7; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        input[type="text"], input[type="date"], textarea { width: 100%; padding: 10px; margin: 4px 0 10px 0; border: 1px solid #BDC3C7; border-radius: 8px; font-size: 14px; display: block; height: 40px; }
+        textarea { height: auto; }
         button { background-color: var(--primary-color); color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
         button.danger { background-color: var(--danger-color); }
         button.secondary { background-color: #95A5A6; }
         
-        .checkbox-manager-list, .holiday-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .checkbox-manager-list, .holiday-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
         .tag-item, .holiday-btn { background: #ECF0F1; padding: 4px 10px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
         .holiday-btn { background: #EAF2F8; color: #2980B9; border: 1px solid #AED6F1; border-radius: 6px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px 0; }
-        .checkbox-label { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; }
         
-        /* 未來兩星期個案清單樣式 */
-        .two-week-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-        .two-week-item { background: #F8F9FA; border-left: 4px solid var(--primary-color); padding: 10px 12px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background 0.2s; }
+        /* 📱 修正：手機版日期欄位改為上下直排，徹底防止一高一低錯位 */
+        .date-fields-group { display: flex; flex-direction: column; gap: 2px; }
+        
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px 0; }
+        .checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; background: #F8F9FA; padding: 6px 10px; border-radius: 6px; border: 1px solid #EAECEE; }
+        
+        /* 未來兩星期個案清單 */
+        .two-week-list { display: flex; flex-direction: column; gap: 6px; }
+        .two-week-item { background: #F8F9FA; border-left: 4px solid var(--primary-color); padding: 10px; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .two-week-item:active { background: #EBEDEF; }
-        .two-week-hn { font-weight: bold; color: #2C3E50; font-size: 15px; }
-        .two-week-date { font-size: 13px; color: #7F8C8D; background: #EAECEE; padding: 2px 8px; border-radius: 12px; font-weight: 500; }
-        .two-week-empty { color: #7f8c8d; text-align: center; font-size: 14px; padding: 10px 0; }
-        
-        /* 新症 Tag 樣式 */
-        .new-case-badge { background-color: #E8F8F5; color: #117A65; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 6px; border: 1px solid #A3E4D7;}
+        .two-week-hn { font-weight: bold; color: #2C3E50; font-size: 14px; }
+        .two-week-date { font-size: 12px; color: #7F8C8D; background: #EAECEE; padding: 2px 8px; border-radius: 12px; }
+        .two-week-empty { color: #7f8c8d; text-align: center; font-size: 13px; padding: 8px 0; }
+        .new-case-badge { background-color: #E8F8F5; color: #117A65; padding: 1px 4px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 4px; border: 1px solid #A3E4D7;}
 
         /* Patient Cards */
         .patient-card { border: 2px solid #ECF0F1; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
-        .patient-card.clash { border-color: var(--danger-color); background-color: #FDEDEC; }
         .clash-warning { color: var(--danger-color); font-weight: bold; font-size: 12px; margin-top: 5px; display: none; }
-        .patient-card.clash .clash-warning { display: block; }
         .patient-hn { font-size: 16px; font-weight: bold; color: #2C3E50; display: flex; align-items: center; }
-        .search-box { background: #EAECEE; border: none; padding: 10px; font-size: 15px; margin-bottom: 8px; }
-        .search-tags-title { font-size: 13px; color: #7F8C8D; margin-bottom: 5px; font-weight: bold;}
-        .search-checkbox-group { background: #F8F9FA; padding: 10px; border-radius: 8px; border: 1px dashed #BDC3C7; }
+        .search-box { background: #EAECEE; border: none; padding: 10px; font-size: 14px; margin-bottom: 8px; }
+        .search-tags-title { font-size: 12px; color: #7F8C8D; margin-bottom: 4px; font-weight: bold;}
+        .search-checkbox-group { background: #F8F9FA; padding: 8px; border-radius: 8px; border: 1px dashed #BDC3C7; }
 
-        /* 📅 日曆樣式 */
-        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 5px; }
-        .cal-header h2 { border: none; padding: 0; margin: 0; font-size: 16px; }
-        .cal-btn-group { display: flex; align-items: center; gap: 4px; }
-        .cal-btn-group button { padding: 4px 10px; font-size: 12px; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; width: 100%; box-sizing: border-box; }
-        .cal-weekday { font-weight: bold; color: #7F8C8D; font-size: 11px; padding: 4px 0; background: #EAECEE; border-radius: 4px; }
-        .cal-day { min-height: 55px; background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 6px; padding: 2px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; box-sizing: border-box; overflow: hidden; }
-        .cal-day .day-num { font-size: 10px; font-weight: bold; color: #95A5A6; text-align: left; padding-left: 2px; }
+        /* 📅 修正：日曆頂部排版，改為上下兩層，防止手機疊字 */
+        .cal-header { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+        .cal-header h2 { border: none; padding: 0; margin: 0; font-size: 16px; width: 100%; }
+        .cal-control-row { display: flex; align-items: center; justify-content: center; width: 100%; background: #F8F9FA; padding: 6px; border-radius: 8px; gap: 10px; }
+        .cal-btn-group button { padding: 6px 16px; font-size: 14px; background: var(--primary-color); color: white; border-radius: 6px; }
+        
+        /* 📅 修正：日曆網格強制 7 等分，防止寬度收縮變形 */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; width: 100%; table-layout: fixed; }
+        .cal-weekday { font-weight: bold; color: #7F8C8D; font-size: 11px; padding: 6px 0; background: #EAECEE; border-radius: 4px; text-align: center; }
+        
+        .cal-day { min-height: 52px; background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 4px; padding: 2px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; overflow: hidden; }
+        .cal-day .day-num { font-size: 10px; font-weight: bold; color: #95A5A6; text-align: left; padding-left: 1px; line-height: 1; margin-bottom: 2px; }
         .cal-day.today { background-color: #EBF5FB; border-color: #5DADE2; }
         .cal-day.today .day-num { color: #2980B9; }
         .cal-day.is-holiday-bg { background-color: #FEF9E7; border-color: #F4D03F; }
-        .cal-badge { font-size: 8px; padding: 1px 2px; margin: 1px 0; border-radius: 3px; color: white; font-weight: 500; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; }
+        
+        /* 標籤極限縮小適應手機螢幕 */
+        .cal-badge { font-size: 8px; padding: 1px; margin: 1px 0; border-radius: 2px; color: white; font-weight: bold; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; display: block; width: 100%; }
         .badge-normal { background-color: #4A90E2; }
         .badge-done { background-color: #2ECC71 !important; }
         .badge-review { background-color: #E67E22 !important; }
@@ -90,17 +96,17 @@
     </div>
 
     <div class="card">
-        <h2>⏱️ 未來兩星期個案清單 (Next 14 Days Cases)</h2>
+        <h2>⏱️ 未來兩星期個案清單 (Next 14 Days)</h2>
         <div class="two-week-list" id="twoWeekList"></div>
     </div>
 
     <div class="card">
         <div class="cal-header">
             <h2>📅 總個案排程日曆表</h2>
-            <div class="cal-btn-group">
-                <button onclick="changeMonth(-1)">◀</button>
-                <span id="calMonthTitle" style="font-weight:bold; font-size:13px; min-width: 75px; text-align:center; display:inline-block;">2026年 05月</span>
-                <button onclick="changeMonth(1)">▶</button>
+            <div class="cal-control-row">
+                <div class="cal-btn-group"><button onclick="changeMonth(-1)">◀</button></div>
+                <div id="calMonthTitle" style="font-weight:bold; font-size:14px; min-width: 90px; text-align:center;">2026年 05月</div>
+                <div class="cal-btn-group"><button onclick="changeMonth(1)">▶</button></div>
             </div>
         </div>
         <div class="cal-grid" id="calendarGrid"></div>
@@ -109,25 +115,25 @@
     <div class="card">
         <h2>⚙️ 設定：管理自訂剔格</h2>
         <div class="checkbox-manager-list" id="managerList"></div>
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="newCheckboxName" placeholder="輸入新格仔名稱" style="margin:0;">
+        <div style="display: flex; gap: 8px;">
+            <input type="text" id="newCheckboxName" placeholder="新格仔名稱" style="margin:0;">
             <button onclick="addCustomCheckbox()">新增</button>
         </div>
     </div>
 
     <div class="card">
         <h2>📅 設定：我放假嘅日期範圍</h2>
-        <div class="grid-2">
+        <div class="date-fields-group">
             <div>
-                <label style="font-size:12px;">由:</label>
-                <input type="date" id="holidayStart" style="margin-bottom:10px;">
+                <label style="font-size:12px; font-weight:bold;">由:</label>
+                <input type="date" id="holidayStart">
             </div>
             <div>
-                <label style="font-size:12px;">至:</label>
-                <input type="date" id="holidayEnd" style="margin-bottom:10px;">
+                <label style="font-size:12px; font-weight:bold;">至:</label>
+                <input type="date" id="holidayEnd">
             </div>
         </div>
-        <button onclick="addHolidayRange()" class="secondary" style="width: 100%;">新增假期</button>
+        <button onclick="addHolidayRange()" class="secondary" style="width: 100%; margin-top: 4px;">新增假期</button>
         <div class="holiday-list" id="holidayList"></div>
     </div>
 
@@ -135,11 +141,14 @@
         <h2>✍️ 輸入新個案 / 編輯資料</h2>
         <form id="patientForm" onsubmit="savePatient(event)">
             <input type="hidden" id="editIndex" value="-1">
+            
             <label><b>1. Patient HN Number:</b></label>
             <input type="text" id="hnNumber" placeholder="例如: HN123456" required>
+            
             <label><b>2. 項目剔格:</b></label>
             <div class="checkbox-group" id="formCheckboxes"></div>
-            <div class="grid-2">
+            
+            <div class="date-fields-group">
                 <div>
                     <label><b>3. 最後一次見 (新症可留空):</b></label>
                     <input type="date" id="lastSeen">
@@ -149,9 +158,11 @@
                     <input type="date" id="nextSeen">
                 </div>
             </div>
+            
             <label><b>6. 備忘錄:</b></label>
             <textarea id="freeText" rows="3" placeholder="打返有咩要留意..."></textarea>
-            <button type="submit" style="width: 100%; padding: 12px;">儲存病人資料</button>
+            
+            <button type="submit" style="width: 100%; padding: 12px; margin-top: 5px;">儲存病人資料</button>
             <button type="button" id="cancelEditBtn" class="secondary" style="width: 100%; margin-top: 8px; display: none;" onclick="resetForm()">取消編輯</button>
         </form>
     </div>
@@ -170,7 +181,7 @@
 </div>
 
 <script>
-    let db = { checkboxes: ['已完成', '要review', '已簽字', 'Report ready', '要配藥'], holidayRanges: [], patients: [] };
+    let db = { checkboxes: ['Signed', 'DCMS', '要step up', '已完成', '要review'], holidayRanges: [], patients: [] };
     let currentCalDate = new Date();
 
     if(localStorage.getItem('clinicCompanionDB')) { db = JSON.parse(localStorage.getItem('clinicCompanionDB')); }
@@ -182,7 +193,7 @@
         db.checkboxes.forEach((name, index) => {
             list.innerHTML += `<div class="tag-item">${name} <span style="color:red;cursor:pointer;" onclick="deleteCheckbox(${index})">×</span></div>`;
             formGroup.innerHTML += `<label class="checkbox-label"><input type="checkbox" value="${name}" class="patient-chk"> ${name}</label>`;
-            searchGroup.innerHTML += `<label class="checkbox-label" style="font-size:12px;"><input type="checkbox" value="${name}" class="search-filter-chk" onchange="renderPatients()"> ${name}</label>`;
+            searchGroup.innerHTML += `<label class="checkbox-label" style="font-size:11px; padding:4px 8px;"><input type="checkbox" value="${name}" class="search-filter-chk" onchange="renderPatients()"> ${name}</label>`;
         });
     }
     function addCustomCheckbox() {
@@ -227,7 +238,7 @@
         const list = document.getElementById('patientList'); const kw = document.getElementById('searchBox').value.toLowerCase();
         const selectedSearchTags = []; document.querySelectorAll('.search-filter-chk:checked').forEach(c => selectedSearchTags.push(c.value));
         list.innerHTML = '';
-        if(db.patients.length === 0) { list.innerHTML = '<p style="color:#7f8c8d;text-align:center;">暫無病人檔案</p>'; return; }
+        if(db.patients.length === 0) { list.innerHTML = '<p style="color:#7f8c8d;text-align:center;font-size:13px;">暫無病人檔案</p>'; return; }
         
         db.patients.forEach((p, index) => {
             if(kw && !p.notes.toLowerCase().includes(kw)) return;
@@ -242,21 +253,20 @@
                     <div class="patient-hn">
                         HN: ${p.hn} ${isNewCase ? '<span class="new-case-badge">🆕 新個案</span>' : ''}
                     </div>
-                    <p><b>剔格項目:</b> ${ticksHtml}</p>
-                    <p>📅 <b>最後一見:</b> ${p.lastSeen || '❌ 未曾見過 (新個案)'} | 📅 <b>下一次見:</b> ${p.nextSeen || '未填'}</p>
+                    <p style="font-size:13px; margin:6px 0;"><b>項目:</b> ${ticksHtml}</p>
+                    <p style="font-size:13px; margin:6px 0;">📅 <b>最後一見:</b> ${p.lastSeen || '❌ 未曾見過'} <br>📅 <b>下一次見:</b> ${p.nextSeen || '未填'}</p>
                     <p class="clash-warning" style="${isClash ? 'display:block;' : ''}">⚠️ 警告：下一次見面日子同你放假日子撞咗！</p>
-                    <div style="background:#F9F9F9; padding:10px; border-radius:6px; margin-top:10px; font-size:14px; white-space: pre-wrap;"><b>📝 備忘錄:</b><br>${p.notes || '（空白）'}</div>
-                    <div style="margin-top: 15px; display:flex; gap:10px;">
-                        <button onclick="editPatient(${index})">修改</button>
-                        <button class="danger" onclick="deletePatient(${index})">刪除</button>
+                    <div style="background:#F9F9F9; padding:8px; border-radius:6px; margin-top:8px; font-size:13px; white-space: pre-wrap;"><b>📝 備忘錄:</b><br>${p.notes || '（空白）'}</div>
+                    <div style="margin-top: 10px; display:flex; gap:8px;">
+                        <button onclick="editPatient(${index})" style="font-size:12px; padding:6px 12px;">修改</button>
+                        <button class="danger" onclick="deletePatient(${index})" style="font-size:12px; padding:6px 12px;">刪除</button>
                     </div>
                 </div>`;
         });
     }
 
     function renderTwoWeekList() {
-        const listContainer = document.getElementById('twoWeekList');
-        listContainer.innerHTML = '';
+        const listContainer = document.getElementById('twoWeekList'); listContainer.innerHTML = '';
         const today = new Date(); today.setHours(0,0,0,0);
         const fourteenDaysLater = new Date(today); fourteenDaysLater.setDate(today.getDate() + 14);
 
@@ -270,18 +280,15 @@
         });
 
         if (upcomingCases.length === 0) {
-            listContainer.innerHTML = '<div class="two-week-empty">🌴 未來兩星期暫無預約個案</div>';
-            return;
+            listContainer.innerHTML = '<div class="two-week-empty">🌴 未來兩星期暫無預約個案</div>'; return;
         }
-
         upcomingCases.sort((a, b) => a.dateObj - b.dateObj);
-
         upcomingCases.forEach(item => {
-            const isNew = !item.patient.lastSeen ? ' <span style="color:#117A65; font-size:11px;">[🆕新症]</span>' : '';
+            const isNew = !item.patient.lastSeen ? ' <span style="color:#117A65; font-size:10px;">[🆕新症]</span>' : '';
             listContainer.innerHTML += `
                 <div class="two-week-item" onclick="scrollToPatient(${item.originIndex})">
                     <div class="two-week-hn">🪪 HN: ${item.patient.hn}${isNew}</div>
-                    <div class="two-week-date">⏳ 下次見: ${item.patient.nextSeen}</div>
+                    <div class="two-week-date">⏳ ${item.patient.nextSeen}</div>
                 </div>`;
         });
     }
@@ -302,23 +309,28 @@
         const grid = document.getElementById('calendarGrid'); const monthTitle = document.getElementById('calMonthTitle'); grid.innerHTML = '';
         const year = currentCalDate.getFullYear(); const month = currentCalDate.getMonth();
         monthTitle.innerText = `${year}年 ${String(month + 1).padStart(2, '0')}月`;
+        
         const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
         weekdays.forEach(wd => { grid.innerHTML += `<div class="cal-weekday">${wd}</div>`; });
+        
         const firstDayIndex = new Date(year, month, 1).getDay(); const totalDays = new Date(year, month + 1, 0).getDate(); const todayStr = new Date().toISOString().split('T')[0];
+        
         for (let i = 0; i < firstDayIndex; i++) { grid.innerHTML += `<div></div>`; }
         for (let day = 1; day <= totalDays; day++) {
             const currentStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const isToday = currentStr === todayStr ? 'today' : ''; const isHoliday = checkIfDateIsHoliday(currentStr) ? 'is-holiday-bg' : '';
             let dayHtml = `<div class="cal-day ${isToday} ${isHoliday}"><div class="day-num">${day}</div>`;
+            
             db.patients.forEach((p, pIdx) => {
                 let badgeClass = 'badge-normal';
                 if (p.checkedItems.includes('已完成')) { badgeClass = 'badge-done'; } else if (p.checkedItems.includes('要review')) { badgeClass = 'badge-review'; }
+                const shortHn = p.hn.replace(/^\D+/g, '');
                 
                 if(p.lastSeen && p.lastSeen === currentStr) { 
-                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${p.hn.replace(/^\D+/g, '')}</div>`; 
+                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${shortHn}</div>`; 
                 }
                 if(p.nextSeen === currentStr) { 
-                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏭️${p.hn.replace(/^\D+/g, '')}</div>`; 
+                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏭️${shortHn}</div>`; 
                 }
             });
             dayHtml += `</div>`; grid.innerHTML += dayHtml;
