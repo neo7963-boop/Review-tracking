@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Clinic">
-    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAsAAAAAwAMAAAAFpOTPAAAAD1BMVEU0S0tdXmBfXmBfXmBfXmBv37pXAAAABHRSTlMAECBA6be3vAAAAMxJREFUeNrt1gENwzAMAMFEWeZfOpW7g7vIAnTe9ooAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALg9N7MvBv9u794ZfI3Z6wEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIDbCzBe9u7Iu0YvAAAAAElFTkSuQmCC">
+    <link rel="apple-touch-icon" href="icon.png">
 
     <style>
         :root { --primary-color: #4A90E2; --danger-color: #E74C3C; --bg-color: #F5F7FA; --card-bg: #FFFFFF; --text-color: #333333; }
@@ -22,6 +22,15 @@
         .app-logo svg { width: 24px; height: 24px; fill: white; }
         .app-title h1 { margin: 0; font-size: 20px; color: #2C3E50; }
         .app-title p { margin: 2px 0 0 0; font-size: 11px; color: #7F8C8D; }
+        
+        /* 🌐 核心新增：Chrome 風格分頁欄 (Tab Bar) */
+        .tab-bar { display: flex; background: #EAECEE; border-radius: 10px; padding: 4px; margin-bottom: 14px; gap: 4px; }
+        .tab-btn { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: #7F8C8D; border: none; background: transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .tab-btn.active { background: var(--card-bg); color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        
+        /* 分頁顯示控制 */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         
         .card { background: var(--card-bg); border-radius: 14px; padding: 12px; margin-bottom: 12px; box-shadow: 0 3px 5px rgba(0,0,0,0.04); width: 100%; overflow: hidden; }
         h2 { margin-top: 0; font-size: 16px; color: #2C3E50; border-bottom: 2px solid #ECF0F1; padding-bottom: 8px; margin-bottom: 10px; }
@@ -57,25 +66,25 @@
         .search-tags-title { font-size: 12px; color: #7F8C8D; margin-bottom: 4px; font-weight: bold;}
         .search-checkbox-group { background: #F8F9FA; padding: 8px; border-radius: 8px; border: 1px dashed #BDC3C7; }
 
-        /* 📅 徹底重寫：日曆控制列，採用純塊狀獨立分行，絕對不會再疊字 */
+        /* 日曆控制列 */
         .cal-header-block { width: 100%; margin-bottom: 12px; }
         .cal-header-block h2 { border: none; margin: 0 0 10px 0; padding: 0; font-size: 16px; }
         .cal-control-row { display: flex; align-items: center; justify-content: space-between; background: #F0F4F8; padding: 8px 12px; border-radius: 10px; width: 100%; }
         .cal-btn { padding: 6px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border-radius: 6px; font-weight: bold; }
         
-        /* 📅 終極大修正：改用原生 Table 佈局，強制手機端 100% 均分，防止一長一短變形 */
+        /* 日曆表格 */
         .calendar-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
         .calendar-table th { font-weight: bold; color: #7F8C8D; font-size: 12px; padding: 6px 0; background: #EAECEE; border-radius: 4px; text-align: center; }
         .calendar-table td { background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 4px; padding: 2px; vertical-align: top; height: 55px; width: 14.28%; overflow: hidden; }
         
         .calendar-table td.today { background-color: #EBF5FB; border-color: #5DADE2; }
+        .calendar-table td.today .day-num { color: #2980B9; }
         .calendar-table td.is-holiday-bg { background-color: #FEF9E7; border-color: #F4D03F; }
         .calendar-table td.empty-day { background: transparent; border: none; }
         
         .day-num { font-size: 10px; font-weight: bold; color: #95A5A6; text-align: left; padding-left: 1px; margin-bottom: 2px; line-height: 1; }
-        .calendar-table td.today .day-num { color: #2980B9; }
         
-        /* 標籤設計優化 */
+        /* 標籤 */
         .cal-badge { font-size: 8px; padding: 1px; margin: 1px 0; border-radius: 2px; color: white; font-weight: bold; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; display: block; width: 100%; }
         .badge-normal { background-color: #4A90E2; }
         .badge-done { background-color: #2ECC71 !important; }
@@ -95,98 +104,111 @@
         </div>
     </div>
 
-    <div class="card">
-        <h2>⏱️ 未來兩星期個案清單 (Next 14 Days)</h2>
-        <div class="two-week-list" id="twoWeekList"></div>
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('main-tab')">📅 醫生行程</button>
+        <button class="tab-btn" onclick="switchTab('setting-tab')">⚙️ 系統設定</button>
     </div>
 
-    <div class="card">
-        <div class="cal-header-block">
-            <h2>📅 總個案排程日曆表</h2>
-            <div class="cal-control-row">
-                <button class="cal-btn" onclick="changeMonth(-1)">◀</button>
-                <div id="calMonthTitle" style="font-weight:bold; font-size:15px; color:#2C3E50;">2026年 05月</div>
-                <button class="cal-btn" onclick="changeMonth(1)">▶</button>
-            </div>
+    <div id="main-tab" class="tab-content active">
+        <div class="card">
+            <h2>⏱️ 未來兩星期個案清單 (Next 14 Days)</h2>
+            <div class="two-week-list" id="twoWeekList"></div>
         </div>
-        
-        <table class="calendar-table">
-            <thead>
-                <tr>
-                    <th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th>
-                </tr>
-            </thead>
-            <tbody id="calendarTableBody">
-                </tbody>
-        </table>
-    </div>
 
-    <div class="card">
-        <h2>⚙️ 設定：管理自訂剔格</h2>
-        <div class="checkbox-manager-list" id="managerList"></div>
-        <div style="display: flex; gap: 8px;">
-            <input type="text" id="newCheckboxName" placeholder="新格仔名稱" style="margin:0;">
-            <button onclick="addCustomCheckbox()">新增</button>
+        <div class="card">
+            <div class="cal-header-block">
+                <h2>📅 總個案排程日曆表</h2>
+                <div class="cal-control-row">
+                    <button class="cal-btn" onclick="changeMonth(-1)">◀</button>
+                    <div id="calMonthTitle" style="font-weight:bold; font-size:15px; color:#2C3E50;">2026年 05月</div>
+                    <button class="cal-btn" onclick="changeMonth(1)">▶</button>
+                </div>
+            </div>
+            
+            <table class="calendar-table">
+                <thead>
+                    <tr>
+                        <th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th>
+                    </tr>
+                </thead>
+                <tbody id="calendarTableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="card" id="formSection">
+            <h2>✍️ 輸入新個案 / 編輯資料</h2>
+            <form id="patientForm" onsubmit="savePatient(event)">
+                <input type="hidden" id="editIndex" value="-1">
+                
+                <label><b>1. Patient HN Number:</b></label>
+                <input type="text" id="hnNumber" placeholder="例如: HN123456" required>
+                
+                <label><b>2. 項目剔格:</b></label>
+                <div class="checkbox-group" id="formCheckboxes"></div>
+                
+                <div class="date-fields-group">
+                    <div>
+                        <label><b>3. 最後一次見 (新症可留空):</b></label>
+                        <input type="date" id="lastSeen">
+                    </div>
+                    <div>
+                        <label><b>4. 下一次見:</b></label>
+                        <input type="date" id="nextSeen">
+                    </div>
+                </div>
+                
+                <label><b>6. 備忘錄:</b></label>
+                <textarea id="freeText" rows="3" placeholder="打返有咩要留意..."></textarea>
+                
+                <button type="submit" style="width: 100%; padding: 12px; margin-top: 5px;">儲存病人資料</button>
+                <button type="button" id="cancelEditBtn" class="secondary" style="width: 100%; margin-top: 8px; display: none;" onclick="resetForm()">取消編輯</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>🔍 綜合搜尋 (Search Notes & Tags)</h2>
+            <input type="text" id="searchBox" class="search-box" placeholder="輸入關鍵字搜尋備忘錄..." oninput="renderPatients()">
+            <div class="search-tags-title">💡 按已剔項目過濾：</div>
+            <div class="checkbox-group search-checkbox-group" id="searchCheckboxes"></div>
+        </div>
+
+        <div class="card">
+            <h2>📋 病人檔案名單</h2>
+            <div id="patientList"></div>
         </div>
     </div>
 
-    <div class="card">
-        <h2>📅 設定：我放假嘅日期範圍</h2>
-        <div class="date-fields-group">
-            <div>
-                <label style="font-size:12px; font-weight:bold;">由:</label>
-                <input type="date" id="holidayStart">
-            </div>
-            <div>
-                <label style="font-size:12px; font-weight:bold;">至:</label>
-                <input type="date" id="holidayEnd">
-            </div>
-        </div>
-        <button onclick="addHolidayRange()" class="secondary" style="width: 100%; margin-top: 4px;">新增假期</button>
-        <div class="holiday-list" id="holidayList"></div>
-    </div>
 
-    <div class="card" id="formSection">
-        <h2>✍️ 輸入新個案 / 編輯資料</h2>
-        <form id="patientForm" onsubmit="savePatient(event)">
-            <input type="hidden" id="editIndex" value="-1">
-            
-            <label><b>1. Patient HN Number:</b></label>
-            <input type="text" id="hnNumber" placeholder="例如: HN123456" required>
-            
-            <label><b>2. 項目剔格:</b></label>
-            <div class="checkbox-group" id="formCheckboxes"></div>
-            
+    <div id="setting-tab" class="tab-content">
+        <div class="card">
+            <h2>📅 設定：我放假嘅日期範圍 (Holiday)</h2>
             <div class="date-fields-group">
                 <div>
-                    <label><b>3. 最後一次見 (新症可留空):</b></label>
-                    <input type="date" id="lastSeen">
+                    <label style="font-size:12px; font-weight:bold;">由:</label>
+                    <input type="date" id="holidayStart">
                 </div>
                 <div>
-                    <label><b>4. 下一次見:</b></label>
-                    <input type="date" id="nextSeen">
+                    <label style="font-size:12px; font-weight:bold;">至:</label>
+                    <input type="date" id="holidayEnd">
                 </div>
             </div>
+            <button onclick="addHolidayRange()" class="secondary" style="width: 100%; margin-top: 8px;">新增假期範圍</button>
             
-            <label><b>6. 備忘錄:</b></label>
-            <textarea id="freeText" rows="3" placeholder="打返有咩要留意..."></textarea>
-            
-            <button type="submit" style="width: 100%; padding: 12px; margin-top: 5px;">儲存病人資料</button>
-            <button type="button" id="cancelEditBtn" class="secondary" style="width: 100%; margin-top: 8px; display: none;" onclick="resetForm()">取消編輯</button>
-        </form>
+            <p style="font-size:13px; color:#7F8C8D; margin-top:14px; font-weight:bold;">🌴 已登記之假期（點擊可刪除）：</p>
+            <div class="holiday-list" id="holidayList"></div>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ 設定：管理自訂項目剔格 (Tags Manager)</h2>
+            <div class="checkbox-manager-list" id="managerList"></div>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="newCheckboxName" placeholder="新格仔名稱" style="margin:0;">
+                <button onclick="addCustomCheckbox()">新增</button>
+            </div>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>🔍 綜合搜尋 (Search Notes & Tags)</h2>
-        <input type="text" id="searchBox" class="search-box" placeholder="輸入關鍵字搜尋備忘錄..." oninput="renderPatients()">
-        <div class="search-tags-title">💡 按已剔項目過濾：</div>
-        <div class="checkbox-group search-checkbox-group" id="searchCheckboxes"></div>
-    </div>
-
-    <div class="card">
-        <h2>📋 病人檔案名單</h2>
-        <div id="patientList"></div>
-    </div>
 </div>
 
 <script>
@@ -196,6 +218,20 @@
     if(localStorage.getItem('clinicCompanionDB')) { db = JSON.parse(localStorage.getItem('clinicCompanionDB')); }
     function saveData() { localStorage.setItem('clinicCompanionDB', JSON.stringify(db)); }
     
+    // 🌐 核心新增：控制分頁切換嘅 Function
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        // 幫對應嘅按鈕加返 active 高亮
+        if(tabId === 'main-tab') {
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        }
+    }
+
     function renderCheckboxManager() {
         const list = document.getElementById('managerList'); const formGroup = document.getElementById('formCheckboxes'); const searchGroup = document.getElementById('searchCheckboxes');
         list.innerHTML = ''; formGroup.innerHTML = ''; searchGroup.innerHTML = '';
@@ -303,6 +339,8 @@
     }
 
     function scrollToPatient(index) {
+        // 🌐 點擊日曆或清單時，如果目前在設定頁，強制跳回主要日程頁，方便操作
+        switchTab('main-tab');
         editPatient(index);
         setTimeout(() => {
             const card = document.getElementById(`p-card-${index}`);
@@ -314,7 +352,6 @@
         }, 350);
     }
 
-    // 📅 使用 Table 邏輯完全重寫日曆生成器
     function renderCalendar() {
         const tbody = document.getElementById('calendarTableBody'); const monthTitle = document.getElementById('calMonthTitle'); tbody.innerHTML = '';
         const year = currentCalDate.getFullYear(); const month = currentCalDate.getMonth();
@@ -323,7 +360,6 @@
         const firstDayIndex = new Date(year, month, 1).getDay(); const totalDays = new Date(year, month + 1, 0).getDate(); const todayStr = new Date().toISOString().split('T')[0];
         
         let rowHtml = '<tr>';
-        // 填補第一行的空白格子
         for (let i = 0; i < firstDayIndex; i++) { rowHtml += '<td class="empty-day"></td>'; }
         
         let currentDayCount = firstDayIndex;
@@ -351,7 +387,6 @@
             rowHtml += `</td>`; currentDayCount++;
         }
         
-        // 補完最後一行的剩餘空位
         if (currentDayCount < 7 && currentDayCount > 0) {
             for (let i = currentDayCount; i < 7; i++) { rowHtml += '<td class="empty-day"></td>'; }
         }
