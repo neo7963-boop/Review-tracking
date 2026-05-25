@@ -26,13 +26,31 @@
         .holiday-btn { background: #EAF2F8; color: #2980B9; border: 1px solid #AED6F1; border-radius: 6px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin: 10px 0 15px 0; }
-        .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 15px; }
+        .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 15px; cursor: pointer; }
         .patient-card { border: 2px solid #ECF0F1; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
         .patient-card.clash { border-color: var(--danger-color); background-color: #FDEDEC; }
         .clash-warning { color: var(--danger-color); font-weight: bold; font-size: 13px; margin-top: 5px; display: none; }
         .patient-card.clash .clash-warning { display: block; }
         .patient-hn { font-size: 18px; font-weight: bold; color: #2C3E50; }
-        .search-box { background: #EAECEE; border: none; padding: 12px; font-size: 16px; }
+        .search-box { background: #EAECEE; border: none; padding: 12px; font-size: 16px; margin-bottom: 10px; }
+        .search-tags-title { font-size: 14px; color: #7F8C8D; margin-top: 5px; margin-bottom: 5px; font-weight: bold;}
+        .search-checkbox-group { background: #F8F9FA; padding: 12px; border-radius: 8px; border: 1px dashed #BDC3C7; }
+
+        /* --- 📅 日曆專用自訂樣式 --- */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .cal-weekday { font-weight: bold; color: #7F8C8D; font-size: 12px; padding: 5px 0; background: #EAECEE; border-radius: 4px; }
+        .cal-day { min-height: 75px; background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 8px; padding: 4px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; box-sizing: border-box;}
+        .cal-day .day-num { font-size: 12px; font-weight: bold; color: #95A5A6; text-align: left; margin-bottom: 3px;}
+        .cal-day.today { background-color: #EBF5FB; border-color: #5DADE2; }
+        .cal-day.today .day-num { color: #2980B9; }
+        .cal-day.is-holiday-bg { background-color: #FEF9E7; border-color: #F4D03F; } /* 放假日子黃色底底 */
+        
+        /* 日曆入面 Patient Badge 嘅顏色設定 */
+        .cal-badge { font-size: 10px; padding: 2px 4px; margin: 2px 0; border-radius: 4px; color: white; font-weight: bold; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .badge-normal { background-color: #4A90E2; }
+        .badge-done { background-color: #2ECC71 !important; } /* 🟢 綠色 已完成 */
+        .badge-review { background-color: #E67E22 !important; } /* 🟠 橙色 要review */
     </style>
 </head>
 <body>
@@ -44,8 +62,20 @@
         </div>
         <div class="app-title">
             <h1>Clinic Companion</h1>
-            <p>Patient Follow-up & Holiday Checker</p>
+            <p>Patient Follow-up & Calendar Tracker</p>
         </div>
+    </div>
+
+    <div class="card">
+        <div class="cal-header">
+            <h2 style="border:none; padding:0; margin:0;">📅 總個案排程日曆表</h2>
+            <div>
+                <button onclick="changeMonth(-1)" style="padding:5px 12px;">◀</button>
+                <span id="calMonthTitle" style="font-weight:bold; margin: 0 10px; font-size:16px;">2026年 05月</span>
+                <button onclick="changeMonth(1)" style="padding:5px 12px;">▶</button>
+            </div>
+        </div>
+        <div class="cal-grid" id="calendarGrid"></div>
     </div>
 
     <div class="card">
@@ -73,7 +103,7 @@
         <div class="holiday-list" id="holidayList"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="formSection">
         <h2>✍️ 輸入新個案 / 編輯資料</h2>
         <form id="patientForm" onsubmit="savePatient(event)">
             <input type="hidden" id="editIndex" value="-1">
@@ -99,8 +129,10 @@
     </div>
 
     <div class="card">
-        <h2>🔍 搜尋個案 (Search Notes)</h2>
+        <h2>🔍 綜合搜尋 (Search Notes & Tags)</h2>
         <input type="text" id="searchBox" class="search-box" placeholder="輸入關鍵字搜尋備忘錄..." oninput="renderPatients()">
+        <div class="search-tags-title">💡 按已剔項目過濾 (可多選)：</div>
+        <div class="checkbox-group search-checkbox-group" id="searchCheckboxes"></div>
     </div>
 
     <div class="card">
@@ -110,16 +142,26 @@
 </div>
 
 <script>
-    let db = { checkboxes: ['已簽字', 'Report ready', '要配藥'], holidayRanges: [], patients: [] };
+    // 預設追加 🟢已完成 與 🟠要review 確保功能運作
+    let db = { 
+        checkboxes: ['已完成', '要review', '已簽字', 'Report ready', '要配藥'], 
+        holidayRanges: [], 
+        patients: [] 
+    };
+    
+    // 日曆當前顯示年月狀態
+    let currentCalDate = new Date();
+
     if(localStorage.getItem('clinicCompanionDB')) { db = JSON.parse(localStorage.getItem('clinicCompanionDB')); }
     function saveData() { localStorage.setItem('clinicCompanionDB', JSON.stringify(db)); }
     
     function renderCheckboxManager() {
-        const list = document.getElementById('managerList'); const formGroup = document.getElementById('formCheckboxes');
-        list.innerHTML = ''; formGroup.innerHTML = '';
+        const list = document.getElementById('managerList'); const formGroup = document.getElementById('formCheckboxes'); const searchGroup = document.getElementById('searchCheckboxes');
+        list.innerHTML = ''; formGroup.innerHTML = ''; searchGroup.innerHTML = '';
         db.checkboxes.forEach((name, index) => {
             list.innerHTML += `<div class="tag-item">${name} <span style="color:red;cursor:pointer;" onclick="deleteCheckbox(${index})">×</span></div>`;
             formGroup.innerHTML += `<label class="checkbox-label"><input type="checkbox" value="${name}" class="patient-chk"> ${name}</label>`;
+            searchGroup.innerHTML += `<label class="checkbox-label" style="font-size:13px;"><input type="checkbox" value="${name}" class="search-filter-chk" onchange="renderPatients()"> ${name}</label>`;
         });
     }
     function addCustomCheckbox() {
@@ -142,10 +184,10 @@
         if (start > end) { alert('結束日期唔可以早過開始日期！'); return; }
         if(!db.holidayRanges.some(r => r.start === start && r.end === end)) {
             db.holidayRanges.push({ start, end }); document.getElementById('holidayStart').value = ''; document.getElementById('holidayEnd').value = '';
-            saveData(); renderHolidays(); renderPatients();
+            saveData(); renderHolidays(); renderPatients(); renderCalendar();
         }
     }
-    function deleteHolidayRange(index) { db.holidayRanges.splice(index, 1); saveData(); renderHolidays(); renderPatients(); }
+    function deleteHolidayRange(index) { db.holidayRanges.splice(index, 1); saveData(); renderHolidays(); renderPatients(); renderCalendar(); }
     function checkIfDateIsHoliday(d) { return d ? db.holidayRanges.some(r => d >= r.start && d <= r.end) : false; }
 
     function savePatient(e) {
@@ -157,14 +199,19 @@
             notes: document.getElementById('freeText').value.trim()
         };
         if(editIndex === -1) db.patients.push(pData); else db.patients[editIndex] = pData;
-        saveData(); resetForm(); renderPatients();
+        saveData(); resetForm(); renderPatients(); renderCalendar();
     }
+
     function renderPatients() {
         const list = document.getElementById('patientList'); const kw = document.getElementById('searchBox').value.toLowerCase();
+        const selectedSearchTags = []; document.querySelectorAll('.search-filter-chk:checked').forEach(c => selectedSearchTags.push(c.value));
         list.innerHTML = '';
         if(db.patients.length === 0) { list.innerHTML = '<p style="color:#7f8c8d;text-align:center;">暫無病人檔案</p>'; return; }
+        
         db.patients.forEach((p, index) => {
             if(kw && !p.notes.toLowerCase().includes(kw)) return;
+            if(!selectedSearchTags.every(tag => p.checkedItems.includes(tag))) return;
+
             const isClash = checkIfDateIsHoliday(p.nextSeen);
             const ticksHtml = p.checkedItems.map(item => `🏷️ <b>${item}</b>`).join(' | ') || '無';
             list.innerHTML += `
@@ -181,17 +228,82 @@
                 </div>`;
         });
     }
+
+    /* --- 📅 日曆邏輯運作引擎 --- */
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const monthTitle = document.getElementById('calMonthTitle');
+        grid.innerHTML = '';
+
+        const year = currentCalDate.getFullYear();
+        const month = currentCalDate.getMonth(); // 0-11
+        
+        monthTitle.innerText = `${year}年 ${String(month + 1).padStart(2, '0')}月`;
+
+        // 星期日(0) 至 星期六(6) 表頭
+        const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        weekdays.forEach(wd => { grid.innerHTML += `<div class="cal-weekday">${wd}</div>`; });
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // 補空白格仔（今個月第一天之前嘅空位）
+        for (let i = 0; i < firstDayIndex; i++) { grid.innerHTML += `<div></div>`; }
+
+        // 生成每一天
+        for (let day = 1; day <= totalDays; day++) {
+            const currentStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isToday = currentStr === todayStr ? 'today' : '';
+            const isHoliday = checkIfDateIsHoliday(currentStr) ? 'is-holiday-bg' : '';
+
+            let dayHtml = `<div class="cal-day ${isToday} ${isHoliday}"><div class="day-num">${day}</div>`;
+
+            // 尋找當天有沒有對應要見嘅 patient
+            db.patients.forEach((p, pIdx) => {
+                let badgeClass = 'badge-normal';
+                let typeTxt = '';
+
+                // 顏色優先權權重：1.已完成(綠色) -> 2.要review(橙色)
+                if (p.checkedItems.includes('已完成')) {
+                    badgeClass = 'badge-done';
+                } else if (p.checkedItems.includes('要review')) {
+                    badgeClass = 'badge-review';
+                }
+
+                // 檢查最後一次見
+                if(p.lastSeen === currentStr) {
+                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="editPatient(${pIdx})" title="最後一次見">⏮️ ${p.hn}</div>`;
+                }
+                // 檢查下一次見
+                if(p.nextSeen === currentStr) {
+                    dayHtml += `<div class="cal-badge ${badgeClass}" onclick="editPatient(${pIdx})" title="下一次見面">⏭️ ${p.hn}</div>`;
+                }
+            });
+
+            dayHtml += `</div>`;
+            grid.innerHTML += dayHtml;
+        }
+    }
+
+    function changeMonth(direction) {
+        currentCalDate.setMonth(currentCalDate.getMonth() + direction);
+        renderCalendar();
+    }
+
     function editPatient(index) {
         const p = db.patients[index]; document.getElementById('editIndex').value = index;
         document.getElementById('hnNumber').value = p.hn; document.getElementById('lastSeen').value = p.lastSeen;
         document.getElementById('nextSeen').value = p.nextSeen; document.getElementById('freeText').value = p.notes;
         document.querySelectorAll('.patient-chk').forEach(c => c.checked = p.checkedItems.includes(c.value));
-        document.getElementById('cancelEditBtn').style.display = 'block'; window.scrollTo({ top: 300, behavior: 'smooth' });
+        document.getElementById('cancelEditBtn').style.display = 'block'; 
+        document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
     }
-    function deletePatient(index) { if(confirm('確定要刪除？')) { db.patients.splice(index, 1); saveData(); renderPatients(); } }
+    function deletePatient(index) { if(confirm('確定要刪除？')) { db.patients.splice(index, 1); saveData(); renderPatients(); renderCalendar(); } }
     function resetForm() { document.getElementById('patientForm').reset(); document.getElementById('editIndex').value = "-1"; document.getElementById('cancelEditBtn').style.display = 'none'; }
     
-    renderCheckboxManager(); renderHolidays(); renderPatients();
+    // 初始化加載
+    renderCheckboxManager(); renderHolidays(); renderPatients(); renderCalendar();
 </script>
 </body>
 </html>
