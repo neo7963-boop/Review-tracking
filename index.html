@@ -8,14 +8,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dietitian">
-    <link rel="apple-touch-icon" href="icon.png">
+    <link class="app-icon-link" rel="apple-touch-icon" href="icon.png">
 
     <style>
         :root { --primary-color: #2ECC71; --danger-color: #E74C3C; --bg-color: #F4F6F8; --card-bg: #FFFFFF; --text-color: #333333; }
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 10px; -webkit-text-size-adjust: 100%; }
-        .container { max-width: 900px; margin: 0 auto; width: 100%; }
+        .container { max-width: 900px; margin: 0 auto; width: 100%; position: relative; }
         
+        /* 頂部即時提示條 */
+        .toast-banner { display: none; background-color: #34495E; color: white; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; font-weight: bold; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
         /* App Header */
         .app-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 5px 0; }
         .app-logo { width: 44px; height: 44px; background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -23,7 +27,7 @@
         .app-title h1 { margin: 0; font-size: 20px; color: #2C3E50; }
         .app-title p { margin: 2px 0 0 0; font-size: 11px; color: #7F8C8D; }
         
-        /* Chrome 風格分頁欄 (Tab Bar) */
+        /* Chrome 風格分頁欄 */
         .tab-bar { display: flex; background: #EAECEE; border-radius: 10px; padding: 4px; margin-bottom: 14px; gap: 4px; }
         .tab-btn { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: bold; color: #7F8C8D; border: none; background: transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
         .tab-btn.active { background: var(--card-bg); color: var(--primary-color); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
@@ -43,7 +47,7 @@
         button.info { background-color: #3498DB; }
         
         .checkbox-manager-list, .holiday-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-        .tag-item, .holiday-btn { background: #ECF0F1; padding: 4px 10px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .tag-item, .holiday-btn { background: #ECF0F1; padding: 4px 10px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .holiday-btn { background: #E8F8F5; color: #117A65; border: 1px solid #A3E4D7; border-radius: 6px; }
         
         .date-fields-group { display: flex; flex-direction: column; gap: 2px; }
@@ -67,37 +71,41 @@
         .search-tags-title { font-size: 12px; color: #7F8C8D; margin-bottom: 4px; font-weight: bold;}
         .search-checkbox-group { background: #F8F9FA; padding: 8px; border-radius: 8px; border: 1px dashed #BDC3C7; }
 
-        /* 日曆控制列 */
+        /* 日曆表格 */
         .cal-header-block { width: 100%; margin-bottom: 12px; }
         .cal-header-block h2 { border: none; margin: 0 0 10px 0; padding: 0; font-size: 16px; }
         .cal-control-row { display: flex; align-items: center; justify-content: space-between; background: #E8F8F5; padding: 8px 12px; border-radius: 10px; width: 100%; }
         .cal-btn { padding: 6px 18px; font-size: 14px; background-color: var(--primary-color); color: white; border-radius: 6px; font-weight: bold; }
-        
-        /* 日曆表格 */
         .calendar-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
         .calendar-table th { font-weight: bold; color: #7F8C8D; font-size: 12px; padding: 6px 0; background: #EAECEE; border-radius: 4px; text-align: center; }
         .calendar-table td { background: #FAFAFA; border: 1px solid #EAECEE; border-radius: 4px; padding: 2px; vertical-align: top; height: 55px; width: 14.28%; overflow: hidden; }
-        
         .calendar-table td.today { background-color: #E8F8F5; border-color: #2ECC71; }
         .calendar-table td.today .day-num { color: #27AE60; }
         .calendar-table td.is-holiday-bg { background-color: #FEF9E7; border-color: #F4D03F; }
         .calendar-table td.empty-day { background: transparent; border: none; }
-        
         .day-num { font-size: 10px; font-weight: bold; color: #95A5A6; text-align: left; padding-left: 1px; margin-bottom: 2px; line-height: 1; }
         
-        /* 標籤 */
         .cal-badge { font-size: 8px; padding: 1px; margin: 1px 0; border-radius: 2px; color: white; font-weight: bold; text-align: center; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.1; display: block; width: 100%; }
         .badge-normal { background-color: #2ECC71; }
         .badge-done { background-color: #34495E !important; }
         .badge-review { background-color: #E67E22 !important; }
 
-        /* 備忘錄文字域 */
         .backup-area { width: 100%; height: 100px; font-family: monospace; font-size: 11px; padding: 8px; border: 1px solid #BDC3C7; border-radius: 6px; margin-bottom: 8px; background: #F9F9F9; }
+        
+        /* 回收筒清單樣式 */
+        .trash-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .trash-item { background: #F2F4F4; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #D5DBDB; }
+        .trash-info { font-size: 13px; color: #34495E; line-height: 1.4; }
+        .trash-time { font-size: 11px; color: #95A5A6; margin-top: 2px; }
+        .trash-actions { display: flex; gap: 6px; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    
+    <div id="toastBanner" class="toast-banner">通知</div>
+
     <div class="app-header">
         <div class="app-logo">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
@@ -128,15 +136,9 @@
                     <button class="cal-btn" onclick="changeMonth(1)">▶</button>
                 </div>
             </div>
-            
             <table class="calendar-table">
-                <thead>
-                    <tr>
-                        <th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th>
-                    </tr>
-                </thead>
-                <tbody id="calendarTableBody">
-                    </tbody>
+                <thead><tr><th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th></tr></thead>
+                <tbody id="calendarTableBody"></tbody>
             </table>
         </div>
 
@@ -144,27 +146,16 @@
             <h2>✍️ 輸入新個案 / 編輯資料</h2>
             <form id="patientForm" onsubmit="savePatient(event)">
                 <input type="hidden" id="editIndex" value="-1">
-                
                 <label><b>1. Patient HN Number:</b></label>
                 <input type="text" id="hnNumber" placeholder="例如: HN123456" required>
-                
                 <label><b>2. 項目剔格:</b></label>
                 <div class="checkbox-group" id="formCheckboxes"></div>
-                
                 <div class="date-fields-group">
-                    <div>
-                        <label><b>3. 最後一次見 (新症可留空):</b></label>
-                        <input type="date" id="lastSeen">
-                    </div>
-                    <div>
-                        <label><b>4. 下一次見:</b></label>
-                        <input type="date" id="nextSeen">
-                    </div>
+                    <div><label><b>3. 最後一次見 (新症可留空):</b></label><input type="date" id="lastSeen"></div>
+                    <div><label><b>4. 下一次見:</b></label><input type="date" id="nextSeen"></div>
                 </div>
-                
                 <label><b>6. 備忘錄 (例如飲食筆記):</b></label>
-                <textarea id="freeText" rows="3" placeholder="打返客人嘅情況，例如：需要減脂 / 戒糖備忘..."></textarea>
-                
+                <textarea id="freeText" rows="3" placeholder="打返客人嘅情況..."></textarea>
                 <button type="submit" style="width: 100%; padding: 12px; margin-top: 5px;">儲存客仔資料</button>
                 <button type="button" id="cancelEditBtn" class="secondary" style="width: 100%; margin-top: 8px; display: none;" onclick="resetForm()">取消編輯</button>
             </form>
@@ -183,23 +174,22 @@
         </div>
     </div>
 
-
     <div id="setting-tab" class="tab-content">
+        <div class="card" style="border: 2px dashed #BDC3C7; background-color: #FBFCFC;">
+            <h2>🗑️ 資源回收筒 (Deleted Items Drawer)</h2>
+            <p style="font-size: 12px; color: #7F8C8D; margin: 0 0 10px 0;">💡 不小心刪除嘅【個案檔案】或者【假期範圍】會永久保留喺度。你必須喺下方點擊「永久刪除」先會真正清除。</p>
+            <div class="trash-list" id="trashList"></div>
+            <button id="clearTrashBtn" class="danger" style="width: 100%; margin-top: 14px; padding: 8px; font-size: 13px; display: none; font-weight: bold;" onclick="emptyTrash()">🧹 徹底清空回收筒 (終極刪除)</button>
+        </div>
+
         <div class="card">
             <h2>📅 設定：我放假嘅日期範圍 (Holiday)</h2>
             <div class="date-fields-group">
-                <div>
-                    <label style="font-size:12px; font-weight:bold;">由:</label>
-                    <input type="date" id="holidayStart">
-                </div>
-                <div>
-                    <label style="font-size:12px; font-weight:bold;">至:</label>
-                    <input type="date" id="holidayEnd">
-                </div>
+                <div><label style="font-size:12px; font-weight:bold;">由:</label><input type="date" id="holidayStart"></div>
+                <div><label style="font-size:12px; font-weight:bold;">至:</label><input type="date" id="holidayEnd"></div>
             </div>
             <button onclick="addHolidayRange()" class="secondary" style="width: 100%; margin-top: 8px;">新增假期範圍</button>
-            
-            <p style="font-size:13px; color:#7F8C8D; margin-top:14px; font-weight:bold;">🌴 已登記之假期（點擊可刪除）：</p>
+            <p style="font-size:13px; color:#7F8C8D; margin-top:14px; font-weight:bold;">🌴 已登記之假期（點擊右邊 ❌ 移至回收筒）：</p>
             <div class="holiday-list" id="holidayList"></div>
         </div>
 
@@ -214,12 +204,11 @@
 
         <div class="card">
             <h2>💾 數據一鍵備份及還原 (Backup & Restore)</h2>
-            <p style="font-size: 12px; color: #7F8C8D; margin: 0 0 10px 0;">你可以複製下方文字框內所有文字，貼到手機嘅備忘錄 (Notes) 做備份。需要還原時，將備份貼回此處撳還原即可。</p>
+            <p style="font-size: 12px; color: #7F8C8D; margin: 0 0 10px 0;">可以複製下方文字貼到備忘錄做全盤備份。</p>
             <textarea id="backupTextarea" class="backup-area" readonly onclick="this.select()"></textarea>
-            
             <div style="display: flex; gap: 8px; margin-top: 5px;">
-                <button class="info" style="flex: 1;" onclick="generateBackupString()">🔄 刷新/生成最新備份字串</button>
-                <button class="danger" style="flex: 1;" onclick="importDataString()">📥 還原/匯入備份數據</button>
+                <button class="info" style="flex: 1;" onclick="generateBackupString()">🔄 刷新備份字串</button>
+                <button class="danger" style="flex: 1;" onclick="importDataString()">📥 匯入備份數據</button>
             </div>
         </div>
     </div>
@@ -227,32 +216,136 @@
 </div>
 
 <script>
-    let db = { checkboxes: ['Signed', 'DCMS', '要step up', '已完成', '要review'], holidayRanges: [], patients: [] };
+    let db = { checkboxes: ['Signed', 'DCMS', '要step up', '已完成', '要review'], holidayRanges: [], patients: [], trash: [] };
     let currentCalDate = new Date();
+    let toastTimer = null;
 
-    if(localStorage.getItem('clinicCompanionDB')) { db = JSON.parse(localStorage.getItem('clinicCompanionDB')); }
-    function saveData() { 
-        localStorage.setItem('clinicCompanionDB', JSON.stringify(db)); 
-        generateBackupString(); // 每次存檔自動更新備份文字框
+    if(localStorage.getItem('clinicCompanionDB')) { 
+        const loaded = JSON.parse(localStorage.getItem('clinicCompanionDB'));
+        if (!loaded.trash) loaded.trash = [];
+        db = loaded;
     }
     
+    function saveData() { 
+        localStorage.setItem('clinicCompanionDB', JSON.stringify(db)); 
+        generateBackupString();
+    }
+    
+    function showToast(msg) {
+        const toast = document.getElementById('toastBanner');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        if(toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        
         document.getElementById(tabId).classList.add('active');
         if(tabId === 'main-tab') {
             document.querySelectorAll('.tab-btn')[0].classList.add('active');
         } else {
             document.querySelectorAll('.tab-btn')[1].classList.add('active');
-            generateBackupString(); // 切換到設定頁時自動跑一次備份字串
+            generateBackupString();
+            renderTrash();
         }
     }
 
-    /* 💾 備份功能邏輯 */
+    // 🗑️ 核心修改：渲染回收筒（可同時顯示客仔及假期類型項目）
+    function renderTrash() {
+        const list = document.getElementById('trashList');
+        const clearBtn = document.getElementById('clearTrashBtn');
+        list.innerHTML = '';
+        
+        if (db.trash.length === 0) {
+            list.innerHTML = '<p style="color:#95A5A6; text-align:center; font-size:12px; padding:15px 0; margin:0;">📭 回收筒空空如也，無任何待處理項目</p>';
+            clearBtn.style.display = 'none';
+            return;
+        }
+        
+        clearBtn.style.display = 'block';
+        db.trash.forEach((item, index) => {
+            let itemTitle = "";
+            let itemDesc = "";
+            
+            if (item.type === 'holiday') {
+                itemTitle = `🌴 [假期範圍] ${item.data.start} 至 ${item.data.end}`;
+                itemDesc = "包含此日期內的所有放假標示及撞期警告。";
+            } else {
+                // 默認或舊有的客仔格式
+                const hn = item.patientData?.hn || item.data?.hn || "未知個案";
+                const tags = (item.patientData?.checkedItems || item.data?.checkedItems || []).join(', ') || '無';
+                itemTitle = `🪪 [個案檔案] HN: ${hn}`;
+                itemDesc = `項目: ${tags}`;
+            }
+
+            list.innerHTML += `
+                <div class="trash-item">
+                    <div class="trash-info">
+                        <b>${itemTitle}</b><br>
+                        <span style="font-size:11px;color:#7F8C8D;">${itemDesc}</span><br>
+                        <span class="trash-time">🗑️ 於 ${item.deletedAt} 移入</span>
+                    </div>
+                    <div class="trash-actions">
+                        <button onclick="restoreFromTrash(${index})" style="font-size:12px; padding:6px 10px; background-color:#3498DB;">↩️ 還原</button>
+                        <button onclick="permanentlyDeleteSingle(${index})" class="danger" style="font-size:12px; padding:6px 10px;">❌ 永久刪除</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    // ↩️ 還原功能（自動偵測是客仔定係假期並塞回原處）
+    function restoreFromTrash(index) {
+        const restoredItem = db.trash.splice(index, 1)[0];
+        
+        if (restoredItem.type === 'holiday') {
+            db.holidayRanges.push(restoredItem.data);
+            showToast(`↩️ 已還原假期範圍：${restoredItem.data.start} 至 ${restoredItem.data.end}`);
+        } else {
+            // 兼容處理新舊個案格式
+            const pData = restoredItem.patientData || restoredItem.data;
+            db.patients.push(pData);
+            showToast(`↩️ 已還原客仔檔案：${pData.hn}`);
+        }
+        
+        saveData();
+        renderTrash(); renderPatients(); renderCalendar(); renderTwoWeekList(); renderHolidays();
+    }
+
+    // ⚠️ 個別項目永久刪除確認窗
+    function permanentlyDeleteSingle(index) {
+        const item = db.trash[index];
+        let name = "";
+        if (item.type === 'holiday') {
+            name = `假期範圍 (${item.data.start} ~ ${item.data.end})`;
+        } else {
+            name = `客仔 HN: ${item.patientData?.hn || item.data?.hn}`;
+        }
+
+        if (confirm(`❗❗ 終極警告 ❗❗\n\n你確定要【永久刪除】${name} 嗎？\n此操作會將手機內此項紀錄永久抹除，無法再行還原！`)) {
+            db.trash.splice(index, 1);
+            saveData();
+            renderTrash();
+            showToast(`💥 已徹底永久刪除：${name}`);
+        }
+    }
+
+    // ⚠️ 徹底清空回收筒確認窗
+    function emptyTrash() {
+        if (confirm('❗❗ 終極大清空警告 ❗❗\n\n確定要永久清空回收筒內【所有】個案同假期紀錄？\n撳咗之後，呢度所有暫存資料將永久消失，無得反悔！')) {
+            const count = db.trash.length;
+            db.trash = [];
+            saveData();
+            renderTrash();
+            showToast(`🧹 已永久清空共 ${count} 筆遺留紀錄`);
+        }
+    }
+
     function generateBackupString() {
         document.getElementById('backupTextarea').value = btoa(encodeURIComponent(JSON.stringify(db)));
     }
+    
     function importDataString() {
         const rawStr = prompt('請將之前備份嘅字串貼喺下面：');
         if(!rawStr) return;
@@ -261,12 +354,13 @@
             if(decodedData && Array.isArray(decodedData.patients) && Array.isArray(decodedData.checkboxes)) {
                 if(confirm('確定要還原數據？呢個操作會覆蓋你部手機目前所有嘅紀錄！')) {
                     db = decodedData;
+                    if(!db.trash) db.trash = [];
                     saveData();
-                    renderCheckboxManager(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList();
-                    alert('🎉 數據還原成功！');
+                    renderCheckboxManager(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList(); renderTrash();
+                    showToast('🎉 數據從備份全面還原！');
                 }
-            } else { alert('系統無法辨認呢串字，好可能複製少咗嘢，請再試試。'); }
-        } catch(e) { alert('還原失敗！請確保貼上嘅係完整且正確嘅備份字串。'); }
+            } else { alert('數據格式不符。'); }
+        } catch(e) { alert('還原失敗！'); }
     }
 
     function renderCheckboxManager() {
@@ -301,7 +395,28 @@
             saveData(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList();
         }
     }
-    function deleteHolidayRange(index) { db.holidayRanges.splice(index, 1); saveData(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList(); }
+
+    // 🌴 修改點：不小心撳到放假紀錄嘅 ❌，打包丟進回收筒，不直接蒸發
+    function deleteHolidayRange(index) { 
+        const hRange = db.holidayRanges[index];
+        if(confirm(`確定要刪除假期範圍 ${hRange.start} ~ ${hRange.end} 嗎？(可以去上方回收筒隨時還原)`)) {
+            const now = new Date();
+            const timestamp = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            // 寫明類別為 holiday 塞入回收筒
+            db.trash.push({
+                type: 'holiday',
+                deletedAt: timestamp,
+                data: hRange
+            });
+            
+            db.holidayRanges.splice(index, 1); 
+            saveData(); 
+            renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList(); renderTrash();
+            showToast(`🌴 假期已移至回收筒`);
+        }
+    }
+    
     function checkIfDateIsHoliday(d) { return d ? db.holidayRanges.some(r => d >= r.start && d <= r.end) : false; }
 
     function savePatient(e) {
@@ -312,7 +427,8 @@
             lastSeen: document.getElementById('lastSeen').value, nextSeen: document.getElementById('nextSeen').value,
             notes: document.getElementById('freeText').value.trim()
         };
-        if(editIndex === -1) db.patients.push(pData); else db.patients[editIndex] = pData;
+        if(editIndex === -1) { db.patients.push(pData); showToast(`➕ 已新增客仔: ${pData.hn}`); } 
+        else { db.patients[editIndex] = pData; showToast(`🔄 已更新客仔: ${pData.hn}`); }
         saveData(); resetForm(); renderPatients(); renderCalendar(); renderTwoWeekList();
     }
 
@@ -332,9 +448,7 @@
 
             list.innerHTML += `
                 <div class="patient-card" id="p-card-${index}" style="${isClash ? 'border-color:var(--danger-color);background-color:#FDEDEC;' : ''}">
-                    <div class="patient-hn">
-                        HN: ${p.hn} ${isNewCase ? '<span class="new-case-badge">🆕 新個案</span>' : ''}
-                    </div>
+                    <div class="patient-hn">HN: ${p.hn} ${isNewCase ? '<span class="new-case-badge">🆕 新個案</span>' : ''}</div>
                     <p style="font-size:13px; margin:6px 0;"><b>項目:</b> ${ticksHtml}</p>
                     <p style="font-size:13px; margin:6px 0;">📅 <b>最後一見:</b> ${p.lastSeen || '❌ 未曾見過'} <br>📅 <b>下一次見:</b> ${p.nextSeen || '未填'}</p>
                     <p class="clash-warning" style="${isClash ? 'display:block;' : ''}">⚠️ 警告：下一次見面日子同你放假日子撞咗！</p>
@@ -351,27 +465,17 @@
         const listContainer = document.getElementById('twoWeekList'); listContainer.innerHTML = '';
         const today = new Date(); today.setHours(0,0,0,0);
         const fourteenDaysLater = new Date(today); fourteenDaysLater.setDate(today.getDate() + 14);
-
         const upcomingCases = [];
         db.patients.forEach((p, index) => {
             if (!p.nextSeen) return;
             const nextSeenDate = new Date(p.nextSeen); nextSeenDate.setHours(0,0,0,0);
-            if (nextSeenDate >= today && nextSeenDate <= fourteenDaysLater) {
-                upcomingCases.push({ patient: p, originIndex: index, dateObj: nextSeenDate });
-            }
+            if (nextSeenDate >= today && nextSeenDate <= fourteenDaysLater) { upcomingCases.push({ patient: p, originIndex: index, dateObj: nextSeenDate }); }
         });
-
-        if (upcomingCases.length === 0) {
-            listContainer.innerHTML = '<div class="two-week-empty">🌴 未來兩星期暫無預約客仔</div>'; return;
-        }
+        if (upcomingCases.length === 0) { listContainer.innerHTML = '<div class="two-week-empty">🌴 未來兩星期暫無預約客仔</div>'; return; }
         upcomingCases.sort((a, b) => a.dateObj - b.dateObj);
         upcomingCases.forEach(item => {
             const isNew = !item.patient.lastSeen ? ' <span style="color:#117A65; font-size:10px;">[🆕新症]</span>' : '';
-            listContainer.innerHTML += `
-                <div class="two-week-item" onclick="scrollToPatient(${item.originIndex})">
-                    <div class="two-week-hn">🪪 HN: ${item.patient.hn}${isNew}</div>
-                    <div class="two-week-date">⏳ ${item.patient.nextSeen}</div>
-                </div>`;
+            listContainer.innerHTML += `<div class="two-week-item" onclick="scrollToPatient(${item.originIndex})"><div class="two-week-hn">🪪 HN: ${item.patient.hn}${isNew}</div><div class="two-week-date">⏳ ${item.patient.nextSeen}</div></div>`;
         });
     }
 
@@ -392,40 +496,26 @@
         const tbody = document.getElementById('calendarTableBody'); const monthTitle = document.getElementById('calMonthTitle'); tbody.innerHTML = '';
         const year = currentCalDate.getFullYear(); const month = currentCalDate.getMonth();
         monthTitle.innerText = `${year}年 ${String(month + 1).padStart(2, '0')}月`;
-        
         const firstDayIndex = new Date(year, month, 1).getDay(); const totalDays = new Date(year, month + 1, 0).getDate(); const todayStr = new Date().toISOString().split('T')[0];
-        
         let rowHtml = '<tr>';
         for (let i = 0; i < firstDayIndex; i++) { rowHtml += '<td class="empty-day"></td>'; }
-        
         let currentDayCount = firstDayIndex;
         for (let day = 1; day <= totalDays; day++) {
             if (currentDayCount === 7) { rowHtml += '</tr><tr>'; currentDayCount = 0; }
-            
-            const currentStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const isToday = currentStr === todayStr ? 'today' : ''; const isHoliday = checkIfDateIsHoliday(currentStr) ? 'is-holiday-bg' : '';
-            
+            const currentStr = `${year}-${String(month + 1).padStart(2, '0')}–${String(day).padStart(2, '0')}`;
+            const currentStrStandard = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const isToday = currentStrStandard === todayStr ? 'today' : ''; const isHoliday = checkIfDateIsHoliday(currentStrStandard) ? 'is-holiday-bg' : '';
             rowHtml += `<td class="${isToday} ${isHoliday}"><div class="day-num">${day}</div>`;
-            
             db.patients.forEach((p, pIdx) => {
                 let badgeClass = 'badge-normal';
                 if (p.checkedItems.includes('已完成')) { badgeClass = 'badge-done'; } else if (p.checkedItems.includes('要review')) { badgeClass = 'badge-review'; }
                 const shortHn = p.hn.replace(/^\D+/g, '');
-                
-                if(p.lastSeen && p.lastSeen === currentStr) { 
-                    rowHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${shortHn}</div>`; 
-                }
-                if(p.nextSeen === currentStr) { 
-                    rowHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏭️${shortHn}</div>`; 
-                }
+                if(p.lastSeen && p.lastSeen === currentStrStandard) { rowHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏮️${shortHn}</div>`; }
+                if(p.nextSeen === currentStrStandard) { rowHtml += `<div class="cal-badge ${badgeClass}" onclick="scrollToPatient(${pIdx})">⏭️${shortHn}</div>`; }
             });
-            
             rowHtml += `</td>`; currentDayCount++;
         }
-        
-        if (currentDayCount < 7 && currentDayCount > 0) {
-            for (let i = currentDayCount; i < 7; i++) { rowHtml += '<td class="empty-day"></td>'; }
-        }
+        if (currentDayCount < 7 && currentDayCount > 0) { for (let i = currentDayCount; i < 7; i++) { rowHtml += '<td class="empty-day"></td>'; } }
         rowHtml += '</tr>'; tbody.innerHTML = rowHtml;
     }
 
@@ -438,10 +528,25 @@
         document.querySelectorAll('.patient-chk').forEach(c => c.checked = p.checkedItems.includes(c.value));
         document.getElementById('cancelEditBtn').style.display = 'block';
     }
-    function deletePatient(index) { if(confirm('確定要刪除？')) { db.patients.splice(index, 1); saveData(); renderPatients(); renderCalendar(); renderTwoWeekList(); } }
+    
+    // 移入回收筒 (個案)
+    function deletePatient(index) { 
+        const p = db.patients[index];
+        if(confirm(`確定要將客仔 ${p.hn} 移至回收筒嗎？`)) { 
+            const now = new Date();
+            const timestamp = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            db.trash.push({ type: 'patient', deletedAt: timestamp, data: p, patientData: p });
+            db.patients.splice(index, 1); 
+            saveData(); 
+            renderPatients(); renderCalendar(); renderTwoWeekList(); renderTrash();
+            showToast(`🗑️ 個案 ${p.hn} 已移至回收筒`);
+        } 
+    }
+    
     function resetForm() { document.getElementById('patientForm').reset(); document.getElementById('editIndex').value = "-1"; document.getElementById('cancelEditBtn').style.display = 'none'; }
     
-    renderCheckboxManager(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList();
+    renderCheckboxManager(); renderHolidays(); renderPatients(); renderCalendar(); renderTwoWeekList(); renderTrash();
 </script>
 </body>
 </html>
